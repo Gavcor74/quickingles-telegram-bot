@@ -118,6 +118,7 @@ def init_db() -> None:
     set_default_setting("topic_pool", ",".join(TOPIC_CATALOG))
     set_default_setting("post_length", "medium")
     set_default_setting("brand_signature", "- Jesus | Quickingles")
+    set_default_setting("custom_prompt", "")
 
 
 
@@ -188,6 +189,10 @@ def get_post_length() -> str:
 
 def get_brand_signature() -> str:
     return get_setting("brand_signature", "- Jesus | Quickingles").strip()
+
+
+def get_custom_prompt() -> str:
+    return get_setting("custom_prompt", "").strip()
 
 
 def get_length_instruction() -> str:
@@ -300,6 +305,12 @@ def build_content_prompt(previous_titles: list[str], attempt: int, topic: str) -
     blacklist = "\n".join(f"- {title}" for title in previous_titles) or "- (sin historial)"
     target_length = get_length_instruction()
     signature = get_brand_signature()
+    custom_prompt = get_custom_prompt()
+    custom_block = (
+        f"\nInstrucciones extra del dueño del canal (obligatorias):\n{custom_prompt}\n"
+        if custom_prompt
+        else ""
+    )
     return (
         f"Crea UN post para canal de Telegram sobre '{topic}'.\n"
         "Salida obligatoria con esta plantilla exacta (sin cambiar encabezados):\n"
@@ -326,6 +337,7 @@ def build_content_prompt(previous_titles: list[str], attempt: int, topic: str) -
         f"Intento: {attempt}.\n"
         "Titulos recientes prohibidos:\n"
         f"{blacklist}\n"
+        f"{custom_block}"
         "Devuelve SOLO el post final. No anadas comentarios extra."
     )
 
@@ -420,7 +432,7 @@ def parse_command_text(update: Update) -> str:
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "Bot listo. Comandos: /reset /topics /set_topics /set_mode /set_focus /clear_focus /set_signature /set_length /start_daily /stop_daily /status /post_now"
+        "Bot listo. Comandos: /reset /topics /set_topics /set_mode /set_focus /clear_focus /set_signature /set_length /set_prompt /clear_prompt /start_daily /stop_daily /status /post_now"
     )
 
 
@@ -524,6 +536,28 @@ async def set_length(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     set_setting("post_length", length)
     await update.message.reply_text(f"Longitud de posts actualizada a: {length}")
+
+
+async def set_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await ensure_authorized(update):
+        return
+
+    prompt = parse_command_text(update)
+    if not prompt:
+        await update.message.reply_text("Uso: /set_prompt Escribe aqui las instrucciones extra para los posts")
+        return
+
+    set_setting("custom_prompt", prompt)
+    await update.message.reply_text("Instrucciones extra guardadas.")
+
+
+async def clear_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await ensure_authorized(update):
+        return
+
+    set_setting("custom_prompt", "")
+    await update.message.reply_text("Instrucciones extra borradas.")
+
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await ensure_authorized(update):
         return
@@ -565,10 +599,13 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     pool = ", ".join(get_topic_pool())
     post_length = get_post_length()
     signature = get_brand_signature() or "(sin firma)"
+    custom_prompt = get_custom_prompt()
+    custom_prompt_preview = (custom_prompt[:140] + "...") if len(custom_prompt) > 140 else custom_prompt
+    custom_prompt_status = custom_prompt_preview if custom_prompt_preview else "(ninguna)"
     await update.message.reply_text(
         "Estado diario: "
         f"{enabled}\nCanal: {channel}\nDias: {DAILY_POST_DAYS}\nHora: {DAILY_POST_HOUR:02d}:{DAILY_POST_MINUTE:02d} ({TIMEZONE})\n"
-        f"Modo temas: {mode}\nFoco fijo: {fixed}\nLongitud: {post_length}\nFirma: {signature}\nPool activo: {pool}\nPosts guardados: {posts}"
+        f"Modo temas: {mode}\nFoco fijo: {fixed}\nLongitud: {post_length}\nFirma: {signature}\nPrompt extra: {custom_prompt_status}\nPool activo: {pool}\nPosts guardados: {posts}"
     )
 
 
@@ -674,6 +711,8 @@ def main() -> None:
     app.add_handler(CommandHandler("clear_focus", clear_focus))
     app.add_handler(CommandHandler("set_signature", set_signature))
     app.add_handler(CommandHandler("set_length", set_length))
+    app.add_handler(CommandHandler("set_prompt", set_prompt))
+    app.add_handler(CommandHandler("clear_prompt", clear_prompt))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("start_daily", start_daily))
     app.add_handler(CommandHandler("stop_daily", stop_daily))
@@ -689,6 +728,9 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+
 
 
 

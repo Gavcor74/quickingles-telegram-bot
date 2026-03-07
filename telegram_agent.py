@@ -58,7 +58,7 @@ TOPIC_CATALOG = [
 MEMORY_FILE = Path("telegram_memory.json")
 DB_FILE = Path("content.db")
 MAX_HISTORY_MESSAGES = 20
-MAX_GENERATION_ATTEMPTS = 2
+MAX_GENERATION_ATTEMPTS = 6
 DAILY_JOB_NAME = "daily_post"
 
 
@@ -284,12 +284,15 @@ def is_too_similar(candidate: str, previous: list[str], threshold: float = 0.88)
     return any(similarity(candidate, item) >= threshold for item in previous)
 
 
-def choose_topic() -> str:
+def choose_topic(excluded: set[str] | None = None) -> str:
     fixed = get_fixed_topic()
     if fixed:
         return fixed
 
+    excluded = excluded or set()
     pool = get_topic_pool()
+    pool = [topic for topic in pool if topic not in excluded] or get_topic_pool()
+
     recent = get_recent_topics(limit=max(3, len(pool) // 2))
     candidates = [topic for topic in pool if topic not in recent]
     if not candidates:
@@ -365,10 +368,12 @@ def extract_title(text: str) -> str:
 def generate_unique_post() -> tuple[str, str, str]:
     previous = get_recent_normalized()
     previous_titles = get_recent_titles()
-    best_fallback: tuple[str, str, str] | None = None
+    used_topics: set[str] = set()
 
     for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
-        topic = choose_topic()
+        topic = choose_topic(excluded=used_topics)
+        used_topics.add(topic)
+
         prompt = build_content_prompt(previous_titles, attempt, topic)
         messages = [
             {"role": "system", "content": CONTENT_SYSTEM_PROMPT},
@@ -382,16 +387,19 @@ def generate_unique_post() -> tuple[str, str, str]:
         if not normalized:
             continue
 
-        if best_fallback is None:
-            best_fallback = (extract_title(content), content, topic)
+        # Hard guardrail 1: avoid body repetition.
+        if is_too_similar(normalized, previous, threshold=0.84):
+            continue
+
+        # Hard guardrail 2: avoid title repetition.
+        title = extract_title(content)
+        if is_too_similar(title.lower(), [t.lower() for t in previous_titles], threshold=0.82):
+            continue
 
         if follows_style_rules(content):
-            return extract_title(content), content, topic
+            return title, content, topic
 
-    if best_fallback is not None:
-        return best_fallback
-
-    raise RuntimeError("No se pudo generar contenido util.")
+    raise RuntimeError("No pude generar contenido suficientemente original tras varios intentos.")
 
 
 def save_post(title: str, body: str, topic: str) -> None:
@@ -728,6 +736,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 

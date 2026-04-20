@@ -215,6 +215,39 @@ def get_length_instruction() -> str:
     return "100 a 150 palabras"
 
 
+def get_topic_specific_guidance(topic: str) -> str:
+    guidance: dict[str, str] = {
+        "slang": (
+            "Para slang: evita explicar lo obvio con frases tipo 'X significa slang'. "
+            "Ensenya uso real, matiz, registro y contexto. "
+            "Cada ejemplo debe incluir una frase natural en ingles y una traduccion/adaptacion util en espanol. "
+            "Si usas palabras como 'lowkey', 'lit' o 'sick', da ejemplos concretos y actuales."
+        ),
+        "phrasal verbs": (
+            "Para phrasal verbs: no des definiciones abstractas. "
+            "Prioriza verbo + contexto real + traduccion natural. "
+            "Al menos uno de los ejemplos debe sonar a conversacion cotidiana."
+        ),
+        "collocations": (
+            "Para collocations: centra el post en combinaciones naturales que un hispanohablante suele decir mal."
+        ),
+        "common mistakes": (
+            "Para common mistakes: compara error comun vs forma natural correcta de manera muy clara."
+        ),
+        "pronunciation tips": (
+            "Para pronunciation tips: evita consejos vagos. "
+            "Incluye contraste de sonido o palabra concreta para practicar."
+        ),
+        "grammar in context": (
+            "Para grammar in context: explica la estructura con ejemplos cotidianos, no con teoria larga."
+        ),
+    }
+    return guidance.get(
+        topic,
+        "Haz el contenido practico, especifico y util para hispanohablantes adultos que quieren sonar mas naturales.",
+    )
+
+
 def sanitize_generated_post(content: str, topic: str) -> str:
     text = content.strip()
 
@@ -333,6 +366,7 @@ def build_content_prompt(previous_titles: list[str], attempt: int, topic: str) -
     target_length = get_length_instruction()
     signature = get_brand_signature()
     custom_prompt = get_custom_prompt()
+    topic_guidance = get_topic_specific_guidance(topic)
     custom_block = (
         f"\nInstrucciones extra del dueño del canal (obligatorias):\n{custom_prompt}\n"
         if custom_prompt
@@ -343,13 +377,13 @@ def build_content_prompt(previous_titles: list[str], attempt: int, topic: str) -
         "Salida obligatoria con esta plantilla exacta (sin cambiar encabezados):\n"
         "🧠 [GANCHO EN PREGUNTA]\n\n"
         "📌 [TITULO CORTO]\n"
-        "[Very short explanation in ENGLISH only (1-2 lines max)]\n\n"
+        "[Very short explanation in ENGLISH only (1-2 lines max), useful and specific]\n\n"
         "💬 English boost\n"
-        "[One extra English line only, practical and natural]\n\n"
+        "[One extra English line only, practical, memorable and natural]\n\n"
         "✨ 3 ejemplos utiles\n"
-        "- [Ejemplo 1: 3 frases en ingles] -> [traduccion en espanol]\n"
-        "- [Ejemplo 2: 3 frases en ingles] -> [traduccion en espanol]\n"
-        "- [Ejemplo 3: 3 frases en ingles] -> [traduccion en espanol]\n\n"
+        "- [Ejemplo 1: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]\n"
+        "- [Ejemplo 2: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]\n"
+        "- [Ejemplo 3: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]\n\n"
         "📝 Mini reto\n"
         "[Un ejercicio corto de practica, pero NO incluyas la solucion]\n\n"
         "Reglas obligatorias:\n"
@@ -362,7 +396,13 @@ def build_content_prompt(previous_titles: list[str], attempt: int, topic: str) -
         f"7) Cierra siempre con esta firma exacta: {signature}\n"
         "8) PROHIBIDO incluir una seccion de solucion o respuesta del reto.\n"
         "9) No repitas el mismo tema de la ultima publicacion si hay otras opciones disponibles.\n"
+        "10) No hagas definiciones obvias o demasiado escolares. Tiene que sonar util para adultos.\n"
+        "11) Cada ejemplo debe ser concreto, idiomatico y listo para reutilizar en una conversacion real.\n"
+        "12) El mini reto debe invitar a producir ingles de verdad, no a dar una opinion vaga.\n"
+        "13) Si mencionas una palabra o expresion, contextualizala; no basta con etiquetarla o traducirla de forma plana.\n"
         f"Intento: {attempt}.\n"
+        "Guia especifica para este tema:\n"
+        f"{topic_guidance}\n"
         "Titulos recientes prohibidos:\n"
         f"{blacklist}\n"
         "Temas recientes a evitar:\n"

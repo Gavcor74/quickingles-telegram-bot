@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+telegram_memory.json
+content.db

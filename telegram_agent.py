@@ -276,6 +276,11 @@ def get_recent_topics(limit: int = 10) -> list[str]:
     return [row["topic"].lower() for row in rows if row["topic"]]
 
 
+def get_last_topic() -> str:
+    recent = get_recent_topics(limit=1)
+    return recent[0] if recent else ""
+
+
 def similarity(a: str, b: str) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
@@ -290,8 +295,14 @@ def choose_topic(excluded: set[str] | None = None) -> str:
         return fixed
 
     excluded = excluded or set()
+    last_topic = get_last_topic()
     pool = get_topic_pool()
     pool = [topic for topic in pool if topic not in excluded] or get_topic_pool()
+
+    # Never repeat the immediately previous topic when alternatives exist.
+    non_repeated_pool = [topic for topic in pool if topic != last_topic]
+    if non_repeated_pool:
+        pool = non_repeated_pool
 
     recent = get_recent_topics(limit=max(3, len(pool) // 2))
     candidates = [topic for topic in pool if topic not in recent]
@@ -306,6 +317,8 @@ def choose_topic(excluded: set[str] | None = None) -> str:
 
 def build_content_prompt(previous_titles: list[str], attempt: int, topic: str) -> str:
     blacklist = "\n".join(f"- {title}" for title in previous_titles) or "- (sin historial)"
+    recent_topics = get_recent_topics(limit=5)
+    recent_topics_block = "\n".join(f"- {item}" for item in recent_topics) or "- (sin historial)"
     target_length = get_length_instruction()
     signature = get_brand_signature()
     custom_prompt = get_custom_prompt()
@@ -337,9 +350,12 @@ def build_content_prompt(previous_titles: list[str], attempt: int, topic: str) -
         "6) Reemplaza TODO lo que este entre [corchetes] con contenido real.\n"
         f"7) Cierra siempre con esta firma exacta: {signature}\n"
         "8) PROHIBIDO incluir una seccion de solucion o respuesta del reto.\n"
+        "9) No repitas el mismo tema de la ultima publicacion si hay otras opciones disponibles.\n"
         f"Intento: {attempt}.\n"
         "Titulos recientes prohibidos:\n"
         f"{blacklist}\n"
+        "Temas recientes a evitar:\n"
+        f"{recent_topics_block}\n"
         f"{custom_block}"
         "Devuelve SOLO el post final. No anadas comentarios extra."
     )
@@ -368,11 +384,15 @@ def extract_title(text: str) -> str:
 def generate_unique_post() -> tuple[str, str, str]:
     previous = get_recent_normalized()
     previous_titles = get_recent_titles()
+    last_topic = get_last_topic()
     used_topics: set[str] = set()
 
     for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
         topic = choose_topic(excluded=used_topics)
         used_topics.add(topic)
+
+        if last_topic and topic == last_topic and len(get_topic_pool()) > 1:
+            continue
 
         prompt = build_content_prompt(previous_titles, attempt, topic)
         messages = [

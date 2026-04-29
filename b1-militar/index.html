@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B1 Militar · AGBS 2026 · Ejército del Aire</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07090f;
+  --surf1: #0e1422;
+  --surf2: #141d30;
+  --surf3: #1c2840;
+  --accent: #3b82f6;
+  --accent-dim: rgba(59,130,246,0.15);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --text: #dde4ef;
+  --muted: #5a6a85;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(59,130,246,0.25);
+  --success: #10b981;
+  --danger: #ef4444;
+  --success-bg: rgba(16,185,129,0.12);
+  --danger-bg: rgba(239,68,68,0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── GRID BG ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LAYOUT ── */
+.screen { display: none; min-height: 100vh; position: relative; z-index: 1; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── NAV ── */
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,9,15,0.85);
+  backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--accent); text-transform: uppercase;
+}
+.nav-logo span { color: var(--amber); }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-stat {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px; color: var(--muted);
+}
+.nav-stat b { color: var(--text); }
+.nav-back {
+  background: none; border: 1px solid var(--border2);
+  color: var(--accent); font-size: 13px; padding: 5px 12px;
+  border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  transition: background 0.15s;
+}
+.nav-back:hover { background: var(--accent-dim); }
+
+/* ── HOME ── */
+.home-hero {
+  padding: 56px 28px 32px;
+  text-align: center;
+}
+.callsign {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px; letter-spacing: 0.2em;
+  color: var(--muted); text-transform: uppercase; margin-bottom: 12px;
+}
+.home-hero h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(36px, 7vw, 58px);
+  font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; line-height: 1.05;
+  margin-bottom: 10px;
+}
+.home-hero h1 em { font-style: normal; color: var(--accent); }
+.home-hero p { color: var(--muted); font-size: 15px; max-width: 480px; margin: 0 auto 40px; }
+
+/* ── STAT CARDS ── */
+.stat-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px; padding: 0 28px; max-width: 860px; margin: 0 auto 40px; width: 100%;
+}
+.stat-card {
+  background: var(--surf1); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px;
+}
+.stat-card .lbl { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+.stat-card .val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px; font-weight: 700; color: var(--text); line-height: 1;
+}
+.stat-card .val.accent { color: var(--accent); }
+.stat-card .val.amber { color: var(--amber); }
+.stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ── MODULE CARDS ── */
+.modules {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px; padding: 0 28px 40px; max-width: 860px; margin: 0 auto; width: 100%;
+}
+.module-card {
+  background: var(--surf1); border: 1px solid var(--border);
+  border-radius: 8px; padding: 22px;
+  cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.module-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.module-card.reading::before { background: var(--accent); }
+.module-card.grammar::before { background: var(--amber); }
+.module-card.mixed::before { background: linear-gradient(90deg, var(--accent), var(--amber)); }
+.module-card:hover {
+  border-color: rgba(255,255,255,0.15);
+  background: var(--surf2);
+  transform: translateY(-2px);
+}
+.module-tag {
+  display: inline-block; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 3px; margin-bottom: 12px;
+}
+.reading .module-tag { background: var(--accent-dim); color: var(--accent); }
+.grammar .module-tag { background: var(--amber-dim); color: var(--amber); }
+.mixed .module-tag { background: rgba(255,255,255,0.06); color: var(--text); }
+.module-card h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px; font-weight: 700; letter-spacing: 0.03em;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.module-card p { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.module-meta { display: flex; gap: 14px; }
+.module-meta span { font-size: 12px; color: var(--muted); }
+.module-meta span b { color: var(--text); }
+.module-progress {
+  margin-top: 14px; height: 3px; background: var(--border);
+  border-radius: 2px; overflow: hidden;
+}
+.module-progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+.reading .module-progress-fill { background: var(--accent); }
+.grammar .module-progress-fill { background: var(--amber); }
+
+/* ── TOPIC SELECT ── */
+.topic-screen { padding: 32px 28px; max-width: 860px; margin: 0 auto; width: 100%; }
+.screen-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.screen-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+.topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.topic-btn {
+  background: var(--surf1); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px 18px;
+  cursor: pointer; text-align: left; transition: all 0.18s;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%;
+}
+.topic-btn:hover { background: var(--surf2); border-color: rgba(255,255,255,0.14); }
+.topic-btn-left {}
+.topic-btn-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text);
+}
+.topic-btn-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.topic-btn-score {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 13px; color: var(--muted); white-space: nowrap; flex-shrink: 0;
+}
+.topic-btn-score.done { color: var(--success); }
+
+/* ── QUIZ SCREEN ── */
+.quiz-wrap { padding: 24px 28px; max-width: 720px; margin: 0 auto; width: 100%; flex: 1; }
+.quiz-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.quiz-progress-text {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px; color: var(--muted);
+}
+.quiz-timer {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 14px; font-weight: 500; color: var(--text);
+  background: var(--surf1); border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: 4px;
+}
+.quiz-timer.warn { color: var(--amber); border-color: rgba(245,158,11,0.4); }
+.quiz-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 24px; }
+.quiz-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+.type-badge {
+  display: inline-block; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 3px; margin-bottom: 14px;
+}
+.type-badge.numerica { background: rgba(245,158,11,0.15); color: var(--amber); }
+.type-badge.personajes { background: rgba(59,130,246,0.15); color: var(--accent); }
+.type-badge.sinonimos { background: rgba(16,185,129,0.15); color: var(--success); }
+.type-badge.gramatica { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+.passage {
+  background: var(--surf1); border: 1px solid var(--border);
+  border-left: 3px solid var(--border2);
+  border-radius: 0 6px 6px 0;
+  padding: 18px 20px; font-size: 15px; line-height: 1.8;
+  margin-bottom: 20px; color: var(--text);
+}
+.passage .hl-num { background: rgba(245,158,11,0.25); color: #fcd34d; border-radius: 2px; padding: 0 3px; }
+.passage .hl-who { background: rgba(59,130,246,0.25); color: #93c5fd; border-radius: 2px; padding: 0 3px; }
+.passage .hl-syn { background: rgba(16,185,129,0.2); color: #6ee7b7; border-radius: 2px; padding: 0 3px; }
+.passage .blank {
+  display: inline-block; min-width: 80px; border-bottom: 2px solid var(--accent);
+  text-align: center; color: var(--accent); font-weight: 500;
+  margin: 0 4px; letter-spacing: 0.05em;
+}
+
+.question-text {
+  font-size: 16px; font-weight: 500; color: var(--text);
+  margin-bottom: 16px; line-height: 1.5;
+}
+
+.opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.opt {
+  background: var(--surf1); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px 16px;
+  cursor: pointer; text-align: left; font-size: 14px; color: var(--text);
+  display: flex; align-items: flex-start; gap: 12px;
+  transition: all 0.15s; width: 100%;
+}
+.opt:hover:not(:disabled) { background: var(--surf2); border-color: rgba(255,255,255,0.15); }
+.opt:disabled { cursor: default; }
+.opt-letter {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px; color: var(--muted); font-weight: 500;
+  min-width: 16px; margin-top: 1px; flex-shrink: 0;
+}
+.opt.correct { background: var(--success-bg); border-color: rgba(16,185,129,0.5); }
+.opt.correct .opt-letter { color: var(--success); }
+.opt.wrong { background: var(--danger-bg); border-color: rgba(239,68,68,0.5); }
+.opt.wrong .opt-letter { color: var(--danger); }
+.opt.reveal { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.3); opacity: 0.7; }
+
+.feedback {
+  border-radius: 6px; padding: 14px 16px;
+  font-size: 14px; line-height: 1.65; margin-bottom: 20px;
+  display: none;
+}
+.feedback.show { display: block; }
+.feedback.ok { background: var(--success-bg); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+.feedback.err { background: var(--danger-bg); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+.feedback strong { color: inherit; font-weight: 600; }
+.strategy-box {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 13px; color: rgba(255,255,255,0.55);
+}
+.strategy-box b { color: rgba(255,255,255,0.7); }
+
+.btn-next {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--accent); color: #fff; border: none;
+  padding: 12px 28px; border-radius: 5px; cursor: pointer;
+  transition: opacity 0.15s; display: none; width: 100%;
+}
+.btn-next:hover { opacity: 0.88; }
+.btn-next.visible { display: block; }
+
+/* ── RESULTS ── */
+.results-wrap { padding: 32px 28px; max-width: 720px; margin: 0 auto; width: 100%; }
+.results-header { text-align: center; margin-bottom: 32px; }
+.results-score-big {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 72px; font-weight: 700; line-height: 1;
+  margin-bottom: 6px;
+}
+.results-score-big.excellent { color: var(--success); }
+.results-score-big.good { color: var(--accent); }
+.results-score-big.ok { color: var(--amber); }
+.results-score-big.bad { color: var(--danger); }
+.results-label { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+.results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
+.results-box { background: var(--surf1); border: 1px solid var(--border); border-radius: 6px; padding: 14px; text-align: center; }
+.results-box .n { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700; }
+.results-box .l { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.07em; }
+
+.answer-review { margin-bottom: 28px; }
+.review-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+}
+.review-item {
+  background: var(--surf1); border: 1px solid var(--border);
+  border-radius: 6px; padding: 14px 16px; margin-bottom: 8px;
+}
+.review-item.wrong-item { border-color: rgba(239,68,68,0.3); }
+.review-q { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.review-answer { font-size: 14px; margin-bottom: 4px; }
+.review-answer .r { color: var(--success); } .review-answer .w { color: var(--danger); }
+.review-explanation { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+.results-btns { display: flex; gap: 10px; }
+.btn-primary {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--accent); color: #fff; border: none;
+  padding: 12px 24px; border-radius: 5px; cursor: pointer; flex: 1;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  background: none; color: var(--muted); border: 1px solid var(--border);
+  padding: 12px 24px; border-radius: 5px; cursor: pointer; flex: 1;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { background: var(--surf1); color: var(--text); }
+
+.footer { padding: 28px; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 0.05em; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  nav { padding: 12px 16px; }
+  .home-hero { padding: 36px 16px 24px; }
+  .stat-row, .modules, .topic-screen, .quiz-wrap, .results-wrap { padding-left: 16px; padding-right: 16px; }
+  .results-grid { grid-template-columns: repeat(3,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ HOME ═══ -->
+<div id="screen-home" class="screen active">
+  <nav>
+    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <div class="nav-right">
+      <div class="nav-stat">Sesiones: <b id="home-sessions">0</b></div>
+      <div class="nav-stat">Total: <b id="home-total">0</b> preguntas</div>
+    </div>
+  </nav>
+
+  <div class="home-hero">
+    <div class="callsign">// AGBS · Proceso 2026022 · Proceso TTS</div>
+    <h1>Entrena.<br><em>Aprueba.</em><br>Vuela.</h1>
+    <p>Preparación específica para el examen de inglés B1 militar de acceso a suboficiales — Ejército del Aire.</p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="lbl">Nota actual</div>
+      <div class="val amber">8,33</div>
+      <div class="sub">50 / 60 correctas</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Objetivo</div>
+      <div class="val accent">9,50+</div>
+      <div class="sub">57+ / 60 correctas</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Acierto hoy</div>
+      <div class="val" id="home-pct">—</div>
+      <div class="sub" id="home-pct-sub">Sin sesiones hoy</div>
+    </div>
+    <div class="stat-card">
+      <div class="lbl">Plazas disp.</div>
+      <div class="val" style="color:var(--danger)">2</div>
+      <div class="sub">Expediente: 9,54</div>
+    </div>
+  </div>
+
+  <div class="modules">
+    <div class="module-card reading" onclick="goModuleSelect('reading')">
+      <div class="module-tag">Parte 1</div>
+      <h3>Comprensión escrita</h3>
+      <p>Estrategias anti-trampa para los 3 tipos de error: datos numéricos, personajes múltiples y sinónimos ocultos.</p>
+      <div class="module-meta">
+        <span><b>15</b> textos</span>
+        <span><b>3</b> tipos de trampa</span>
+        <span><b>50</b> min examen</span>
+      </div>
+      <div class="module-progress">
+        <div class="module-progress-fill" id="prog-reading" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="module-card grammar" onclick="goModuleSelect('grammar')">
+      <div class="module-tag">Parte 2</div>
+      <h3>Gramática y vocabulario</h3>
+      <p>Los 7 errores detectados: tiempos verbales, gerundios, pronombres, pasiva, adverbios y collocations.</p>
+      <div class="module-meta">
+        <span><b>35</b> preguntas</span>
+        <span><b>7</b> categorías</span>
+        <span><b>50</b> min examen</span>
+      </div>
+      <div class="module-progress">
+        <div class="module-progress-fill" id="prog-grammar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="module-card mixed" onclick="startQuiz('mixed', null)">
+      <div class="module-tag">Simulacro</div>
+      <h3>Examen mixto</h3>
+      <p>Mezcla de reading y gramática en condiciones reales. Cronómetro activado.</p>
+      <div class="module-meta">
+        <span><b>20</b> preguntas</span>
+        <span><b>Mixto</b></span>
+        <span><b>Cronómetro</b></span>
+      </div>
+      <div class="module-progress">
+        <div class="module-progress-fill" id="prog-mixed" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--amber))"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">B1 · AGBS LII Promoción · App de preparación personal — sin conexión requerida</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ MODULE SELECT ═══ -->
+<div id="screen-module" class="screen">
+  <nav>
+    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <button class="nav-back" onclick="goHome()">← Inicio</button>
+  </nav>
+  <div class="topic-screen">
+    <div class="screen-title" id="module-title"></div>
+    <div class="screen-sub" id="module-sub"></div>
+    <div class="topic-grid" id="topic-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ QUIZ ═══ -->
+<div id="screen-quiz" class="screen">
+  <nav>
+    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <div class="nav-right">
+      <div class="quiz-timer" id="timer">00:00</div>
+      <button class="nav-back" onclick="confirmExit()">Salir</button>
+    </div>
+  </nav>
+  <div class="quiz-wrap">
+    <div class="quiz-top">
+      <div class="quiz-progress-text" id="quiz-prog-text">Pregunta 1 de 5</div>
+      <div class="quiz-progress-text" id="quiz-topic-label"></div>
+    </div>
+    <div class="quiz-bar"><div class="quiz-bar-fill" id="quiz-bar-fill"></div></div>
+    <div id="quiz-content"></div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()">Siguiente pregunta →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ RESULTS ═══ -->
+<div id="screen-results" class="screen">
+  <nav>
+    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <button class="nav-back" onclick="goHome()">← Inicio</button>
+  </nav>
+  <div class="results-wrap">
+    <div class="results-header">
+      <div class="results-score-big" id="res-score-big">0/0</div>
+      <div class="results-label" id="res-label"></div>
+      <div class="results-grid">
+        <div class="results-box">
+          <div class="n" id="res-correct" style="color:var(--success)">0</div>
+          <div class="l">Correctas</div>
+        </div>
+        <div class="results-box">
+          <div class="n" id="res-wrong" style="color:var(--danger)">0</div>
+          <div class="l">Errores</div>
+        </div>
+        <div class="results-box">
+          <div class="n" id="res-time" style="color:var(--accent)">0:00</div>
+          <div class="l">Tiempo</div>
+        </div>
+      </div>
+    </div>
+    <div class="answer-review">
+      <div class="review-title">Revisión de respuestas</div>
+      <div id="review-list"></div>
+    </div>
+    <div class="results-btns">
+      <button class="btn-primary" id="res-retry">Repetir módulo</button>
+      <button class="btn-secondary" onclick="goHome()">Volver al inicio</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════════════════════════ */
+const READING = {
+  numerica: {
+    label: 'Trampa numérica',
+    badge: 'numerica',
+    desc: 'Textos con varios números — asocia cada cifra a su referente antes de elegir',
+    questions: [
+      {
+        passage: 'Taylor Swift was born in <span class="hl-num">1989</span>. She started writing songs at the age of <span class="hl-num">14</span>, and by the time she was <span class="hl-num">16</span> she had already signed a record deal with a major label in Nashville. Her debut album sold over <span class="hl-num">1 million</span> copies in its first week of release.',
+        question: 'According to the text, at what age did Taylor Swift sign a record deal?',
+        opts: ['At 14', 'At 15', 'At 16', 'In 1989'],
+        correct: 2,
+        explanation: 'El texto dice <em>"by the time she was 16 she had already signed a record deal"</em>. La trampa es confundir la edad en que empezó a escribir canciones (14) con la del contrato (16). Ambos números son reales — hay que anclar cada uno a su acción.',
+        strategy: 'Mapa numérico: 1989 = año de nacimiento · 14 = empezó a escribir · 16 = firmó contrato · 1M = copias vendidas.'
+      },
+      {
+        passage: 'The Cork International Jazz Festival attracts visitors from all over the world. Last year\'s edition lasted <span class="hl-num">4</span> days and welcomed <span class="hl-num">over 40,000</span> people. A total of <span class="hl-num">1,200</span> musicians performed across <span class="hl-num">75</span> different venues throughout the city centre.',
+        question: 'How many musicians performed at the festival?',
+        opts: ['75', '4,000', '1,200', '40,000'],
+        correct: 2,
+        explanation: 'El texto menciona 4 cifras distintas y el examen las usa TODAS como opciones. Solo 1,200 corresponde a "musicians". El número 40,000 era de visitantes y 75 de locales.',
+        strategy: 'Cuando el texto tiene 4+ números, anótalos todos antes de leer las opciones. El examen usará todos como distractores.'
+      },
+      {
+        passage: 'Paula Radcliffe set the women\'s marathon world record in <span class="hl-num">2003</span>. She completed the <span class="hl-num">26.2</span>-mile course in <span class="hl-num">2 hours 15 minutes</span> and <span class="hl-num">25 seconds</span>. The record stood for <span class="hl-num">16 years</span> before it was broken in <span class="hl-num">2019</span>.',
+        question: 'For how long did Paula Radcliffe hold the world record?',
+        opts: ['2 hours 15 minutes', '2003 years', '16 years', '25 seconds'],
+        correct: 2,
+        explanation: 'La pregunta pide la duración del récord, no el tiempo de la carrera. <em>"The record stood for 16 years"</em> es la respuesta. La opción A es la trampa más convincente porque es el dato más memorable del texto.',
+        strategy: 'Lee la pregunta ANTES del texto para saber exactamente qué cifra necesitas. Aquí buscas "how long did she hold the record", no el tiempo de carrera.'
+      },
+      {
+        passage: 'The Eiffel Tower was built between <span class="hl-num">1887</span> and <span class="hl-num">1889</span> for the World\'s Fair in Paris. It stands <span class="hl-num">330 metres</span> tall and receives approximately <span class="hl-num">7 million</span> visitors per year, making it the most visited paid monument in the world.',
+        question: 'When was the Eiffel Tower completed?',
+        opts: ['1887', '1888', '1889', '330'],
+        correct: 2,
+        explanation: 'El texto dice que se construyó ENTRE 1887 y 1889. "Completed" (terminada) corresponde al año final: 1889. 1887 es cuando empezaron las obras.',
+        strategy: 'Ojo con "between X and Y" — el inicio y el fin son números distintos. "Completed / finished / built" = el año final.'
+      },
+      {
+        passage: 'The new sports centre opened last month with <span class="hl-num">3</span> swimming pools, <span class="hl-num">12</span> tennis courts and a gym with space for <span class="hl-num">500</span> people. Membership costs <span class="hl-num">£45</span> per month for adults and <span class="hl-num">£25</span> for students and under-16s.',
+        question: 'How much does an adult membership cost per month?',
+        opts: ['£12', '£25', '£45', '£500'],
+        correct: 2,
+        explanation: 'El texto asocia £45 a adultos y £25 a estudiantes/menores. La trampa es £25, que también aparece en el texto pero para otra categoría. Los otros números (3, 12, 500) aparecen como distractores aunque no tienen nada que ver con el precio.',
+        strategy: 'El examen convierte TODOS los números del texto en opciones. Identifica exactamente a qué concepto va ligado cada cifra.'
+      }
+    ]
+  },
+  personajes: {
+    label: 'Personajes múltiples',
+    badge: 'personajes',
+    desc: 'Textos con 2–3 personas — construye un mapa de quién hace qué antes de elegir',
+    questions: [
+      {
+        passage: 'The Jones family takes a very different approach to cooking. <span class="hl-who">Robert</span> spends hours in the kitchen every weekend preparing elaborate main dishes. His wife <span class="hl-who">Sandra</span>, however, prefers to barbecue outside when the weather allows. Their daughter <span class="hl-who">Emma</span> is responsible for making the desserts.',
+        question: 'Who cooks inside the house?',
+        opts: ['Sandra', 'Emma', 'Robert', 'Both Robert and Emma'],
+        correct: 2,
+        explanation: 'Mapa: Robert = cocina DENTRO. Sandra = barbacoa FUERA. Emma = postres. La opción A es la trampa clásica: Sandra sí cocina, pero fuera de casa, no dentro.',
+        strategy: 'Con múltiples personas, construye la tabla antes de las opciones: R=dentro · S=fuera · E=postres. El examen pone acciones reales en personas equivocadas.'
+      },
+      {
+        passage: '<span class="hl-who">Mark</span> and <span class="hl-who">Lisa</span> both work at the city hospital. Mark is a surgeon who operates three days a week, while Lisa works as a nurse in the emergency department every single day. Their colleague <span class="hl-who">Paul</span> is a radiologist who only comes in on Mondays and Thursdays.',
+        question: 'Who works at the hospital every day?',
+        opts: ['Mark', 'Paul', 'Mark and Lisa', 'Lisa'],
+        correct: 3,
+        explanation: 'Mapa: Mark = cirujano, 3 días/semana. Lisa = enfermera urgencias, CADA DÍA. Paul = radiólogo, lunes y jueves. La trampa es C ("Mark and Lisa") — ambos trabajan en el hospital, pero "every day" solo describe a Lisa.',
+        strategy: 'Lee la pregunta con cuidado: "every day" es la clave. Las opciones con "both" o "and" suelen ser trampas cuando la condición solo se aplica a uno.'
+      },
+      {
+        passage: 'In the office, <span class="hl-who">Sarah</span> is responsible for answering client calls and managing appointments. <span class="hl-who">David</span> handles all the accounts and prepares the monthly reports. <span class="hl-who">Their manager, Helen</span>, travels to meet clients every week and rarely works from the office.',
+        question: 'Who spends most of their time outside the office?',
+        opts: ['Sarah', 'David', 'Helen', 'Sarah and David'],
+        correct: 2,
+        explanation: 'Mapa: Sarah = llamadas y citas (en oficina). David = contabilidad e informes (en oficina). Helen = viaja a ver clientes cada semana, "raramente trabaja desde la oficina". Helen es quien está fuera.',
+        strategy: 'Busca en el texto las palabras que indican ubicación: "travels", "rarely works from the office". Son la evidencia directa para la respuesta.'
+      },
+      {
+        passage: 'The school\'s drama club is run by three teachers. <span class="hl-who">Mr Walsh</span> directs the plays and manages the budget. <span class="hl-who">Ms Reyes</span> teaches the students their lines and runs the acting workshops. <span class="hl-who">Mr Chen</span> is in charge of costumes and stage design.',
+        question: 'Who is responsible for the costumes?',
+        opts: ['Mr Walsh', 'Ms Reyes', 'Mr Chen', 'Ms Reyes and Mr Chen'],
+        correct: 2,
+        explanation: 'Directo del texto: "Mr Chen is in charge of costumes and stage design". La trampa es D porque Mr Chen también hace diseño de escenario — el examen puede hacer parecer que comparten la responsabilidad con alguien.',
+        strategy: 'Para preguntas de responsabilidad directa, busca frases exactas: "in charge of", "responsible for", "manages". No hay ambigüedad si te anclas al texto.'
+      },
+      {
+        passage: '<span class="hl-who">Alice</span> and <span class="hl-who">Ben</span> went on holiday together. Alice booked the flights and the hotel. Ben rented the car and planned all the day trips. On the last day, <span class="hl-who">their friend Kate</span> joined them and paid for the farewell dinner.',
+        question: 'Who organised the daily excursions?',
+        opts: ['Alice', 'Kate', 'Alice and Ben', 'Ben'],
+        correct: 3,
+        explanation: 'Mapa: Alice = vuelos y hotel. Ben = coche y EXCURSIONES. Kate = cena de despedida. "Day trips" = excursiones diarias. La trampa es C — Alice y Ben hicieron cosas juntos en general, pero las excursiones fueron solo de Ben.',
+        strategy: '"Day trips" = "daily excursions" → Ben. Este es un caso de sinónimo dentro de la trampa de personajes: el texto dice "day trips", la pregunta dice "excursions".'
+      }
+    ]
+  },
+  sinonimos: {
+    label: 'Sinónimo oculto',
+    badge: 'sinonimos',
+    desc: 'La respuesta correcta usa palabras distintas al texto — busca el significado, no la palabra',
+    questions: [
+      {
+        passage: 'Cork enjoys a <span class="hl-syn">temperate maritime climate</span>. Temperatures rarely drop below 5°C in winter and summer highs seldom exceed 20°C. Rainfall is <span class="hl-syn">spread throughout the year</span>, so visitors are always advised to carry a light jacket.',
+        question: 'What does the text say about the weather in Cork?',
+        opts: ['It is very sunny and hot', 'It is extremely cold in winter', 'It is pleasant and mild', 'It never rains in summer'],
+        correct: 2,
+        explanation: 'El texto NUNCA usa "pleasant" ni "mild", pero esas palabras son el sinónimo exacto de "temperate maritime climate" + temperaturas moderadas. Las opciones A y B contradicen el texto directamente.',
+        strategy: 'La respuesta correcta casi nunca copia palabras del texto. Pregúntate: ¿qué SIGNIFICA lo que dice el texto? "Temperate + rarely below 5°C + seldom exceed 20°C" = pleasant and mild.'
+      },
+      {
+        passage: 'The new community library opened three months ago and has quickly become <span class="hl-syn">very popular among local residents</span>. It offers free internet access, a children\'s corner and weekly film nights. The staff are <span class="hl-syn">always happy to help visitors</span> find what they need.',
+        question: 'What does the text say about the library staff?',
+        opts: ['They are difficult to contact', 'They are very helpful', 'They work long hours', 'They speak several languages'],
+        correct: 1,
+        explanation: '"Always happy to help visitors" = "very helpful". El texto nunca usa la palabra "helpful" — hay que inferir el significado. Las otras opciones no tienen base en el texto.',
+        strategy: 'Lista mental de sinónimos útiles: "happy to assist / help" → helpful. "Well-received / popular" → successful. "Reasonable price" → affordable.'
+      },
+      {
+        passage: 'The restaurant has received excellent reviews since it opened. The food is <span class="hl-syn">carefully prepared using fresh, local ingredients</span>, and portions are <span class="hl-syn">very generous</span>. The prices are <span class="hl-syn">surprisingly reasonable</span> given the quality on offer.',
+        question: 'What does the text suggest about the restaurant?',
+        opts: ['It is expensive', 'It offers good value for money', 'It is difficult to find', 'It is only open at weekends'],
+        correct: 1,
+        explanation: '"Prices are surprisingly reasonable given the quality" = "good value for money". El examen traduce "reasonable price + high quality" en "good value". La opción A es el contrario exacto del texto.',
+        strategy: '"Good value for money" es un sinónimo frecuente en este examen para: "reasonable prices", "not too expensive", "worth the price".'
+      },
+      {
+        passage: 'The national park covers an area of over 500 square kilometres. It is home to <span class="hl-syn">a wide variety of wildlife</span>, including deer, foxes and several rare bird species. The park is <span class="hl-syn">open to visitors throughout the year</span>, though summer is the most popular time to visit.',
+        question: 'What does the text tell us about the park?',
+        opts: ['It closes in winter', 'It only has birds', 'It can be visited any time of year', 'It covers exactly 500 square kilometres'],
+        correct: 2,
+        explanation: '"Open to visitors throughout the year" = "can be visited any time of year". La opción A es el contrario directo. La opción D cambia "over 500" por "exactly 500".',
+        strategy: 'Ojo con las opciones que toman un dato real del texto y lo modifican ligeramente: "over 500" ≠ "exactly 500". Siempre vuelve al texto para los detalles exactos.'
+      },
+      {
+        passage: 'Professor Anderson has spent thirty years <span class="hl-syn">researching animal behaviour in the wild</span>. She has written <span class="hl-syn">more than twenty books</span> on the subject and <span class="hl-syn">regularly gives lectures</span> at universities around the world. Her work has <span class="hl-syn">greatly influenced</span> the field of zoology.',
+        question: 'What does the text tell us about Professor Anderson\'s work?',
+        opts: ['She is a zoology student', 'She has had a significant impact on her field', 'She has written exactly twenty books', 'She rarely travels abroad'],
+        correct: 1,
+        explanation: '"Greatly influenced the field of zoology" = "significant impact on her field". La opción C cambia "more than twenty" por "exactly twenty". La opción D es el contrario de "regularly gives lectures at universities around the world".',
+        strategy: 'Sinónimo clave: "greatly influenced" = "significant impact". También: "widely known" = "famous" · "dedicated to" = "committed to" · "renowned" = "well-known".'
+      }
+    ]
+  }
+};
+
+const GRAMMAR = {
+  going_to: {
+    label: 'Be going to — futuro',
+    badge: 'gramatica',
+    desc: 'Intención preformada vs decisión espontánea vs plan concreto',
+    questions: [
+      {
+        passage: 'Look at those dark clouds! It _____ rain.',
+        question: 'Choose the correct form:',
+        opts: ['will', 'is going to', 'rains', 'rained'],
+        correct: 1,
+        explanation: 'Evidencia visible en el presente (nubes oscuras) → <em>be going to</em>. Esta es la regla clave: cuando hay evidencia física presente que predice algo, siempre "be going to", nunca "will".',
+        strategy: 'Regla: evidencia visible/intención previa = going to · decisión espontánea = will · plan ya organizado = present continuous.'
+      },
+      {
+        passage: 'A: The phone is ringing! B: I _____ get it!',
+        question: 'Choose the correct form:',
+        opts: ['am going to', 'will', "am getting", 'get'],
+        correct: 1,
+        explanation: 'Decisión espontánea en el momento = <em>will</em>. B no tenía ninguna intención previa de coger el teléfono — la decisión surge al escucharlo sonar.',
+        strategy: 'Cuando alguien reacciona en el momento sin planificación previa → will. "I\'ll get it / I\'ll help you / I\'ll have the soup" son decisiones espontáneas.'
+      },
+      {
+        passage: 'I\'ve decided — I _____ study every evening this month.',
+        question: 'Choose the correct form:',
+        opts: ['will', 'am going to', 'study', 'studied'],
+        correct: 1,
+        explanation: '"I\'ve decided" indica que la intención ya estaba formada antes de hablar → <em>be going to</em>. La frase "I\'ve decided / I\'ve made up my mind" es la señal más clara de "going to".',
+        strategy: 'Señales de "going to": "I\'ve decided", "I\'ve made up my mind", "I plan to", "I intend to", o cualquier evidencia de intención previa.'
+      },
+      {
+        passage: 'She _____ not come to the party — she has already told everyone.',
+        question: 'Choose the correct form:',
+        opts: ["won\'t", "isn\'t going to", "doesn\'t", "didn\'t"],
+        correct: 1,
+        explanation: 'Forma negativa de "be going to": <em>is not going to</em> / <em>isn\'t going to</em>. El contexto ("she has already told everyone") confirma una intención ya comunicada → going to, no will.',
+        strategy: 'Negativa de going to: subject + am/is/are + NOT + going to + infinitivo. Nunca "no going to" sin el verbo to be.'
+      },
+      {
+        passage: 'They _____ get married next June. They\'ve already booked the venue.',
+        question: 'Choose the correct form:',
+        opts: ['will', 'are going to', 'are getting married', 'marry'],
+        correct: 1,
+        explanation: 'Tanto B como C son posibles con planes concretos, pero en el examen B1 la presencia de "already booked" (evidencia de planificación) es la señal que apunta a <em>are going to</em>.',
+        strategy: '"Already booked / already arranged / everything is set" → going to o present continuous. En el examen B1, estas señales apuntan siempre a going to como opción correcta.'
+      }
+    ]
+  },
+  gerund: {
+    label: 'Gerundio tras preposición',
+    badge: 'gramatica',
+    desc: 'Preposición + verbo → siempre gerundio (-ing), nunca infinitivo',
+    questions: [
+      {
+        passage: 'He\'s worried about _____ the English exam.',
+        question: 'Choose the correct form:',
+        opts: ['to fail', 'fail', 'failing', 'failed'],
+        correct: 2,
+        explanation: 'Preposición <em>about</em> + verbo = siempre gerundio: "worried about failing". Esta regla no tiene excepciones en inglés estándar.',
+        strategy: 'Regla absoluta: preposición + verbo = -ing. Las preposiciones más frecuentes en el examen: about, of, for, at, in, without, before, after, instead of.'
+      },
+      {
+        passage: 'She\'s very good at _____ foreign languages.',
+        question: 'Choose the correct form:',
+        opts: ['learn', 'to learn', 'learning', 'learned'],
+        correct: 2,
+        explanation: '<em>Good at</em> + verbo = gerundio. "Good at learning, playing, speaking, writing..." La preposición "at" exige -ing.',
+        strategy: 'Expresiones con preposición fija + gerundio: good at / bad at / interested in / fond of / keen on / afraid of / capable of.'
+      },
+      {
+        passage: 'Instead of _____ TV, why don\'t you go for a run?',
+        question: 'Choose the correct form:',
+        opts: ['watch', 'to watch', 'watched', 'watching'],
+        correct: 3,
+        explanation: '<em>Instead of</em> es una preposición compuesta → gerundio. "Instead of watching, studying, eating..." Una expresión muy frecuente en el examen B1.',
+        strategy: 'Preposiciones compuestas + gerundio: instead of / because of / in spite of / due to / on top of / as a result of.'
+      },
+      {
+        passage: 'I\'m really looking forward to _____ you again.',
+        question: 'Choose the correct form:',
+        opts: ['see', 'seeing', 'seen', 'to see'],
+        correct: 1,
+        explanation: '<em>Look forward to</em> — trampa clásica: el "to" aquí es una PREPOSICIÓN, no parte del infinitivo. Por tanto, va seguido de gerundio: "looking forward to seeing / meeting / hearing..."',
+        strategy: 'Trampas con "to" preposicional: look forward to + -ing · be used to + -ing · object to + -ing · when it comes to + -ing. Nunca infinitivo.'
+      },
+      {
+        passage: 'She left without _____ goodbye to anyone.',
+        question: 'Choose the correct form:',
+        opts: ['say', 'to say', 'saying', 'said'],
+        correct: 2,
+        explanation: '<em>Without</em> + verbo = gerundio. "Without saying, without thinking, without knowing..." Muy frecuente en el examen para describir acciones simultáneas o omitidas.',
+        strategy: 'Frase útil para recordar: "She left WITHOUT SAYING goodbye" = Se fue SIN DECIR adiós. El gerundio es el equivalente del infinitivo español tras "sin".'
+      }
+    ]
+  },
+  pronouns: {
+    label: 'Pronombres negativos',
+    badge: 'gramatica',
+    desc: 'anything / nothing / something — sin dobles negaciones en inglés',
+    questions: [
+      {
+        passage: 'I searched everywhere but I couldn\'t find _____.',
+        question: 'Choose the correct word:',
+        opts: ['nothing', 'something', 'anything', 'everything'],
+        correct: 2,
+        explanation: 'En inglés no hay doble negación. "Couldn\'t find" ya es negativo → el pronombre debe ser <em>anything</em>, no "nothing". "I couldn\'t find anything" = "I found nothing" (solo una negación).',
+        strategy: 'Regla: frase negativa (con not/n\'t) + anything. Frase afirmativa + something. Frase afirmativa sola = nothing (sin verbo negativo). NUNCA: didn\'t + nothing.'
+      },
+      {
+        passage: 'There is _____ wrong with this sentence — it\'s perfect.',
+        question: 'Choose the correct word:',
+        opts: ['anything', 'something', 'nothing', 'everything'],
+        correct: 2,
+        explanation: 'Frase afirmativa (sin "not") con significado negativo → <em>nothing</em>. "There is nothing wrong" = no hay nada mal. El verbo "is" está en afirmativo, así que usamos "nothing".',
+        strategy: 'Diferencia clave: "There is nothing wrong" (afirmativo + nothing) = "There isn\'t anything wrong" (negativo + anything). Mismo significado, distinta estructura.'
+      },
+      {
+        passage: 'Can I get you _____ to drink? Tea, coffee?',
+        question: 'Choose the correct word:',
+        opts: ['anything', 'nothing', 'something', 'everything'],
+        correct: 2,
+        explanation: 'En ofertas educadas en pregunta, se usa <em>something</em> en lugar de "anything". "Would you like something?" suena más cálido y educado que "anything".',
+        strategy: 'Excepción importante: preguntas de oferta educada (Can I get you / Would you like / Shall I bring) → something, no anything. "Anything" suena más neutro o indiferente.'
+      },
+      {
+        passage: 'He looked in every drawer but there was _____ there.',
+        question: 'Choose the correct word:',
+        opts: ['something', 'everything', 'anything', 'nothing'],
+        correct: 3,
+        explanation: '"There was nothing there" — frase afirmativa (was) con significado negativo → nothing. Equivalente: "there wasn\'t anything there". El verbo en afirmativo permite "nothing".',
+        strategy: 'Test rápido: ¿hay "not" o "n\'t" en la frase? → anything. ¿No hay negación pero el sentido es negativo? → nothing. ¿Hay negación + afirmación/oferta? → something.'
+      },
+      {
+        passage: 'Did you hear _____ strange last night? I thought I heard a noise.',
+        question: 'Choose the correct word:',
+        opts: ['nothing', 'something', 'anything', 'everything'],
+        correct: 2,
+        explanation: 'Pregunta neutra (genuina, no oferta) → <em>anything</em>. "Did you hear anything?" es una pregunta de información sin expectativa particular de respuesta.',
+        strategy: 'Preguntas neutras (did you / have you / is there) → anything. Pero: "Did you find something interesting?" puede implicar que el hablante espera que SÍ hayas encontrado algo.'
+      }
+    ]
+  },
+  present_perfect: {
+    label: 'Present Perfect',
+    badge: 'gramatica',
+    desc: 'Señales clave: ever, never, just, already, yet, for, since',
+    questions: [
+      {
+        passage: 'She _____ in Madrid since 2019.',
+        question: 'Choose the correct form:',
+        opts: ['lived', 'has lived', 'is living', 'lives'],
+        correct: 1,
+        explanation: '<em>Since</em> es una señal de Present Perfect. La situación empezó en 2019 y continúa ahora → "has lived". Si la frase dijera "from 2019 to 2022" (período cerrado), usaríamos simple past: "lived".',
+        strategy: 'Señales de Present Perfect: since (punto de inicio) · for (duración hasta ahora) · ever / never · already / yet · just · recently.'
+      },
+      {
+        passage: 'I _____ just _____ the report. Here it is.',
+        question: 'Choose the correct form:',
+        opts: ['did finish', 'have finished', 'finished', 'was finishing'],
+        correct: 1,
+        explanation: '<em>Just</em> con Present Perfect indica que algo ocurrió hace muy poco y el resultado es relevante ahora (aquí, el informe ya listo). "I have just finished" = acabo de terminar.',
+        strategy: '"Just" con Present Perfect indica inmediatez. "I\'ve just eaten / arrived / finished" = hace un momento. Diferente de "I just finished" en inglés americano (coloquial).'
+      },
+      {
+        passage: 'Have you _____ visited Japan?',
+        question: 'Choose the correct form:',
+        opts: ['ever', 'never', 'already', 'yet'],
+        correct: 0,
+        explanation: '<em>Ever</em> en preguntas de experiencia de vida = "alguna vez". "Have you ever visited?" pregunta si tienes esa experiencia en algún momento de tu vida.',
+        strategy: 'Ever = en preguntas de experiencia (Have you ever...?). Never = en respuestas negativas (I\'ve never been to...). Already = antes de lo esperado. Yet = hasta ahora (preguntas/negativas).'
+      },
+      {
+        passage: 'She _____ to Paris three times last year.',
+        question: 'Choose the correct form:',
+        opts: ['has been', 'went', 'has gone', 'goes'],
+        correct: 1,
+        explanation: '"Last year" es una referencia temporal cerrada y específica → Simple Past: <em>went</em>. Con Present Perfect NO se pueden usar marcadores temporales cerrados como last year, yesterday, in 2020, two hours ago.',
+        strategy: 'Si hay un marcador temporal cerrado (last year / yesterday / in 2020 / ago) → Simple Past siempre. Present Perfect solo con referencias abiertas o sin referencia temporal.'
+      },
+      {
+        passage: 'I _____ already _____ this film. Let\'s watch something else.',
+        question: 'Choose the correct form:',
+        opts: ['saw', 'have seen', 'see', 'was seeing'],
+        correct: 1,
+        explanation: '<em>Already</em> con Present Perfect indica que algo ocurrió antes de lo esperado o antes de que alguien lo sugiera. "I\'ve already seen it" = relevancia presente (no quiero verlo otra vez).',
+        strategy: 'Already en afirmativas (I\'ve already done it). Yet en negativas e interrogativas (I haven\'t done it yet / Have you done it yet?).'
+      }
+    ]
+  },
+  passive: {
+    label: 'Voz pasiva y vocabulario',
+    badge: 'gramatica',
+    desc: 'Collocations pasivas frecuentes: attended by, held at, awarded to...',
+    questions: [
+      {
+        passage: 'The ceremony _____ over two thousand people.',
+        question: 'Choose the correct option:',
+        opts: ['attended by', 'was attended by', 'attended', 'has attended'],
+        correct: 1,
+        explanation: 'Pasiva: "The ceremony was attended by 2,000 people" = 2,000 personas asistieron a la ceremonia. En el examen, "attended by" es una collocation pasiva frecuente. El sujeto (ceremony) no puede asistir → pasiva obligatoria.',
+        strategy: '"Attended by" = a la que asistieron [X personas]. Otras pasivas frecuentes: held at (celebrado en) · founded by (fundado por) · awarded to (concedido a) · known for (conocido por).'
+      },
+      {
+        passage: 'The conference _____ the city\'s main convention centre.',
+        question: 'Choose the correct option:',
+        opts: ['held at', 'was held at', 'held in', 'was held by'],
+        correct: 1,
+        explanation: '"Was held at" = se celebró en. "Held at" lleva la preposición <em>at</em> para lugares concretos (the centre, the stadium, the hotel). "In" para ciudades o países.',
+        strategy: 'Held AT + lugar concreto (at the stadium, at the hall). Held IN + ciudad/país (in Madrid, in Spain). "Was held" siempre en pasiva cuando el sujeto es el evento.'
+      },
+      {
+        passage: 'The prize _____ the youngest competitor in the history of the competition.',
+        question: 'Choose the correct option:',
+        opts: ['awarded to', 'was awarded to', 'was awarded by', 'awarded by'],
+        correct: 1,
+        explanation: '"Was awarded to" = le fue concedido a. La preposición correcta es <em>to</em> (el destinatario del premio). "By" indicaría quién lo entregó, no quién lo recibió.',
+        strategy: 'Awarded TO = recibido por (el ganador). Presented BY = entregado por (el presentador). Awarded BY = entregado por (quien lo da). La pregunta suele ir por el ganador → to.'
+      },
+      {
+        passage: 'The company _____ a small group of engineers in a garage in 1994.',
+        question: 'Choose the correct option:',
+        opts: ['was founded by', 'founded by', 'was founding', 'had founded'],
+        correct: 0,
+        explanation: '"Was founded by" = fue fundada por. Pasiva simple past: was/were + participio pasado. "Founded by" sin el verbo to be no es gramáticamente correcto como predicado.',
+        strategy: 'Pasiva simple past: was/were + participio. Founded by · built by · designed by · written by · directed by. Siempre con el verbo to be en la forma correcta del tiempo.'
+      },
+      {
+        passage: 'This region _____ its excellent wine and olive oil.',
+        question: 'Choose the correct option:',
+        opts: ['is known for', 'is known by', 'knows for', 'known for'],
+        correct: 0,
+        explanation: '"Is known for" = es conocida por (algo positivo, una característica). La preposición es <em>for</em>, no "by". "Known by" indicaría el agente que lo conoce, no la razón.',
+        strategy: 'Known FOR + motivo/característica: "known for its wine, known for being expensive". Known BY no es una expresión estándar en este contexto.'
+      }
+    ]
+  },
+  adverbs: {
+    label: 'Adverbios de énfasis',
+    badge: 'gramatica',
+    desc: 'even / just / quite — cada uno tiene un matiz muy específico',
+    questions: [
+      {
+        passage: 'She _____ won the gold medal! She\'s only 17 years old.',
+        question: 'Choose the correct adverb:',
+        opts: ['quite', 'just', 'even', 'very'],
+        correct: 2,
+        explanation: '<em>Even</em> expresa sorpresa o algo inesperado. "She EVEN won the gold medal" enfatiza lo sorprendente del logro dada su juventud. "Even" añade el matiz de "y encima", "para colmo".',
+        strategy: 'Even = incluso, para colmo (sorpresa). Just = exactamente / apenas / simplemente. Quite = bastante (moderado en inglés británico). Very = muy (grado alto, sin matiz).'
+      },
+      {
+        passage: 'The walk to the station is _____ five minutes. It\'s very close.',
+        question: 'Choose the correct adverb:',
+        opts: ['even', 'quite', 'just', 'very'],
+        correct: 2,
+        explanation: '<em>Just</em> aquí significa "solamente / apenas" → minimiza la cantidad. "Just five minutes" = solo cinco minutos. Funciona para restar importancia o tranquilizar.',
+        strategy: 'Just como minimizador: "just five minutes / just a small problem / just around the corner". No implica sorpresa (eso es "even"), sino pequeñez o simplicidad.'
+      },
+      {
+        passage: 'The film was _____ good, but I wouldn\'t say it was amazing.',
+        question: 'Choose the correct adverb:',
+        opts: ['very', 'just', 'even', 'quite'],
+        correct: 3,
+        explanation: '<em>Quite</em> en inglés británico significa "bastante" (grado moderado). "Quite good" = bastante bueno, pero no excepcional. La segunda parte de la frase lo confirma: "not amazing".',
+        strategy: 'Quite (BrE) = bastante, moderadamente. "Quite good" ≠ "very good". Señal contextual: si la frase añade "but not excellent / not amazing" → quite es la respuesta.'
+      },
+      {
+        passage: 'It was so cold that it _____ snowed in April.',
+        question: 'Choose the correct adverb:',
+        opts: ['just', 'quite', 'even', 'very'],
+        correct: 2,
+        explanation: '<em>Even</em> con eventos inesperados o extremos: "it even snowed in April" enfatiza lo extraordinario de que nevara en un mes tan tardío. El contexto ("so cold that") ya prepara para algo sorprendente.',
+        strategy: '"So + adjective + that it even + verb" es una estructura frecuente en el examen. Even siempre añade el matiz de lo inesperado o de ir más allá de lo normal.'
+      },
+      {
+        passage: 'I _____ wanted to say thank you. Nothing more.',
+        question: 'Choose the correct adverb:',
+        opts: ['even', 'quite', 'just', 'very'],
+        correct: 2,
+        explanation: '<em>Just</em> aquí significa "simplemente / solo". "I just wanted to say thank you" = solo quería darte las gracias. Minimiza la intención para que suene humilde o directo.',
+        strategy: 'Just como simplificador de intención: "I just wanted to / I\'m just asking / just checking". Muy frecuente en lenguaje educado y conversacional del examen B1.'
+      }
+    ]
+  },
+  collocations: {
+    label: 'Collocations y expresiones fijas',
+    badge: 'gramatica',
+    desc: 'as well as, make/do, take part/place, look forward to, in/at the end',
+    questions: [
+      {
+        passage: 'She plays tennis _____ swimming twice a week.',
+        question: 'Choose the correct expression:',
+        opts: ['as well as', 'as good as', 'as much as', 'as long as'],
+        correct: 0,
+        explanation: '<em>As well as</em> = además de / al igual que. Cuando va seguido de un verbo, este va en gerundio: "as well as swimming". Equivale a "in addition to + -ing".',
+        strategy: 'As well as + gerundio cuando el siguiente elemento es un verbo: "as well as playing / studying / working". No confundir con "as well" (también, al final de frase).'
+      },
+      {
+        passage: 'She _____ a great effort to pass the exam.',
+        question: 'Choose the correct verb:',
+        opts: ['did', 'made', 'took', 'had'],
+        correct: 1,
+        explanation: 'En inglés se dice "make an effort", no "do an effort". La distinción make/do es una de las collocations más examinadas en B1.',
+        strategy: 'Make + effort / decision / mistake / noise / progress / a phone call / friends. Do + homework / exercise / research / damage / business / a favour.'
+      },
+      {
+        passage: 'The concert _____ at the city\'s main stadium last Saturday.',
+        question: 'Choose the correct expression:',
+        opts: ['took part', 'took place', 'took part in', 'took over'],
+        correct: 1,
+        explanation: '<em>Take place</em> = tener lugar (un evento). <em>Take part in</em> = participar en (una persona o grupo). El sujeto es "the concert" (un evento) → take place.',
+        strategy: 'Take place = el evento ocurre (sujeto: evento). Take part in = participar (sujeto: persona). "The festival took place in July" / "She took part in the competition".'
+      },
+      {
+        passage: 'I\'m really looking forward to _____ the results.',
+        question: 'Choose the correct form:',
+        opts: ['hear', 'to hear', 'hearing', 'heard'],
+        correct: 2,
+        explanation: '"Look forward to" — la "to" es preposición, NO parte del infinitivo. Por tanto, el verbo que sigue va en gerundio: "looking forward to hearing".',
+        strategy: 'Look forward to + -ing es una de las trampas más frecuentes del examen B1. También: "be used to + -ing", "object to + -ing", "when it comes to + -ing".'
+      },
+      {
+        passage: 'He was very nervous, but _____ he passed the exam.',
+        question: 'Choose the correct expression:',
+        opts: ['at the end', 'in the end', 'by the end', 'to the end'],
+        correct: 1,
+        explanation: '<em>In the end</em> = al final (resultado tras un proceso o duda). <em>At the end</em> = al final de algo concreto (at the end of the book / the film / the street). Aquí el significado es "finalmente lo logró" → in the end.',
+        strategy: 'In the end = finally, after all (resultado). At the end of = al final de [algo concreto]. "In the end, everything worked out." / "At the end of the film, she cried."'
+      }
+    ]
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   MIXED QUIZ (20 questions, random selection)
+══════════════════════════════════════════════════════════════════ */
+function buildMixedQuiz() {
+  var all = [];
+  ['numerica','personajes','sinonimos'].forEach(function(k) {
+    READING[k].questions.forEach(function(q,i) {
+      all.push({...q, type:'reading', topic: READING[k].label, badge: READING[k].badge, topicKey:k, qi:i});
+    });
+  });
+  Object.keys(GRAMMAR).forEach(function(k) {
+    GRAMMAR[k].questions.forEach(function(q,i) {
+      all.push({...q, type:'grammar', topic: GRAMMAR[k].label, badge: GRAMMAR[k].badge, topicKey:k, qi:i});
+    });
+  });
+  // shuffle and pick 20
+  for(var i=all.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));[all[i],all[j]]=[all[j],all[i]];}
+  return all.slice(0,20);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════════════ */
+var state = {
+  currentModule: null,
+  currentTopic: null,
+  questions: [],
+  qi: 0,
+  answers: [],
+  startTime: null,
+  timerInterval: null
+};
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem('b1_progress') || '{}'); } catch(e) { return {}; }
+}
+function saveProgress(data) {
+  try { localStorage.setItem('b1_progress', JSON.stringify(data)); } catch(e) {}
+}
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem('b1_history') || '[]'); } catch(e) { return []; }
+}
+function saveHistory(record) {
+  var h = loadHistory();
+  h.push(record);
+  if(h.length > 50) h = h.slice(-50);
+  try { localStorage.setItem('b1_history', JSON.stringify(h)); } catch(e) {}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goHome() {
+  clearInterval(state.timerInterval);
+  updateHomeStats();
+  showScreen('home');
+}
+
+function goModuleSelect(mod) {
+  state.currentModule = mod;
+  var title = document.getElementById('module-title');
+  var sub = document.getElementById('module-sub');
+  var grid = document.getElementById('topic-grid');
+  var progress = loadProgress();
+
+  if(mod === 'reading') {
+    title.textContent = 'Comprensión escrita — Elige el tipo de trampa';
+    sub.textContent = 'Practica cada trampa por separado antes de mezclarlas en el simulacro.';
+    grid.innerHTML = '';
+    Object.keys(READING).forEach(function(k) {
+      var t = READING[k];
+      var p = progress['r_'+k] || {correct:0, total:0};
+      var pct = p.total ? Math.round(p.correct/p.total*100) : null;
+      var btn = document.createElement('button');
+      btn.className = 'topic-btn';
+      btn.onclick = function(){startQuiz('reading', k);};
+      btn.innerHTML = '<div class="topic-btn-left"><div class="topic-btn-name">'+t.label+'</div><div class="topic-btn-detail">'+t.desc+'</div></div><div class="topic-btn-score'+(pct!==null?' done':'')+'">'+
+        (pct!==null ? pct+'%' : '—')+'</div>';
+      grid.appendChild(btn);
+    });
+    // All reading
+    var allBtn = document.createElement('button');
+    allBtn.className = 'topic-btn';
+    allBtn.onclick = function(){startQuiz('reading','all');};
+    allBtn.innerHTML = '<div class="topic-btn-left"><div class="topic-btn-name">Todos los tipos</div><div class="topic-btn-detail">15 textos mezclados — nivel máximo</div></div><div class="topic-btn-score">→</div>';
+    grid.appendChild(allBtn);
+  } else {
+    title.textContent = 'Gramática y vocabulario — Elige la categoría';
+    sub.textContent = 'Los 7 errores detectados en el simulacro de julio 2024.';
+    grid.innerHTML = '';
+    Object.keys(GRAMMAR).forEach(function(k) {
+      var t = GRAMMAR[k];
+      var p = progress['g_'+k] || {correct:0, total:0};
+      var pct = p.total ? Math.round(p.correct/p.total*100) : null;
+      var btn = document.createElement('button');
+      btn.className = 'topic-btn';
+      btn.onclick = function(){startQuiz('grammar', k);};
+      btn.innerHTML = '<div class="topic-btn-left"><div class="topic-btn-name">'+t.label+'</div><div class="topic-btn-detail">'+t.desc+'</div></div><div class="topic-btn-score'+(pct!==null?' done':'')+'">'+
+        (pct!==null ? pct+'%' : '—')+'</div>';
+      grid.appendChild(btn);
+    });
+    var allBtnG = document.createElement('button');
+    allBtnG.className = 'topic-btn';
+    allBtnG.onclick = function(){startQuiz('grammar','all');};
+    allBtnG.innerHTML = '<div class="topic-btn-left"><div class="topic-btn-name">Todas las categorías</div><div class="topic-btn-detail">35 preguntas — repaso completo</div></div><div class="topic-btn-score">→</div>';
+    grid.appendChild(allBtnG);
+  }
+  showScreen('module');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   QUIZ START
+══════════════════════════════════════════════════════════════════ */
+function startQuiz(mod, topic) {
+  var questions = [];
+  if(mod === 'mixed') {
+    questions = buildMixedQuiz();
+  } else if(mod === 'reading') {
+    if(topic === 'all') {
+      Object.keys(READING).forEach(function(k){
+        READING[k].questions.forEach(function(q){ questions.push({...q, badge:READING[k].badge, topicKey:k}); });
+      });
+    } else {
+      READING[topic].questions.forEach(function(q){ questions.push({...q, badge:READING[topic].badge, topicKey:topic}); });
+    }
+  } else if(mod === 'grammar') {
+    if(topic === 'all') {
+      Object.keys(GRAMMAR).forEach(function(k){
+        GRAMMAR[k].questions.forEach(function(q){ questions.push({...q, badge:GRAMMAR[k].badge, topicKey:k}); });
+      });
+    } else {
+      GRAMMAR[topic].questions.forEach(function(q){ questions.push({...q, badge:GRAMMAR[topic].badge, topicKey:topic}); });
+    }
+  }
+  // shuffle
+  for(var i=questions.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));[questions[i],questions[j]]=[questions[j],questions[i]];}
+
+  state.currentModule = mod;
+  state.currentTopic = topic;
+  state.questions = questions;
+  state.qi = 0;
+  state.answers = [];
+  state.startTime = Date.now();
+
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(updateTimer, 1000);
+
+  showScreen('quiz');
+  renderQuestion();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════════════════════════════ */
+function updateTimer() {
+  var elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  var m = Math.floor(elapsed/60);
+  var s = elapsed % 60;
+  var el = document.getElementById('timer');
+  el.textContent = (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  el.className = 'quiz-timer' + (elapsed > 45*60 ? ' warn' : '');
+}
+
+function getElapsedStr() {
+  var elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  var m = Math.floor(elapsed/60);
+  var s = elapsed % 60;
+  return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RENDER QUESTION
+══════════════════════════════════════════════════════════════════ */
+function renderQuestion() {
+  var q = state.questions[state.qi];
+  var total = state.questions.length;
+  var pct = Math.round((state.qi / total) * 100);
+
+  document.getElementById('quiz-prog-text').textContent = 'Pregunta '+(state.qi+1)+' de '+total;
+  document.getElementById('quiz-topic-label').textContent = q.topic || (READING[q.topicKey]||GRAMMAR[q.topicKey]||{}).label || '';
+  document.getElementById('quiz-bar-fill').style.width = pct + '%';
+
+  var badgeClass = q.badge || 'gramatica';
+  var html = '<div class="type-badge '+badgeClass+'">'+
+    (q.badge==='numerica'?'Trampa numérica':q.badge==='personajes'?'Personajes múltiples':q.badge==='sinonimos'?'Sinónimo oculto':'Gramática')+'</div>';
+
+  if(q.passage) {
+    html += '<div class="passage">'+q.passage+'</div>';
+  }
+  html += '<div class="question-text">'+q.question+'</div>';
+  html += '<div class="opts" id="opts">';
+  q.opts.forEach(function(opt, i) {
+    html += '<button class="opt" id="opt'+i+'" onclick="answer('+i+')">'+
+      '<span class="opt-letter">'+String.fromCharCode(65+i)+'</span>'+
+      '<span>'+opt+'</span></button>';
+  });
+  html += '</div>';
+  html += '<div class="feedback" id="feedback"></div>';
+
+  document.getElementById('quiz-content').innerHTML = html;
+  document.getElementById('btn-next').className = 'btn-next';
+  document.getElementById('btn-next').textContent = state.qi < total-1 ? 'Siguiente pregunta →' : 'Ver resultados →';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ANSWER
+══════════════════════════════════════════════════════════════════ */
+function answer(oi) {
+  var q = state.questions[state.qi];
+  var isOk = oi === q.correct;
+  state.answers.push({qi: state.qi, chosen: oi, correct: q.correct, isOk: isOk});
+
+  q.opts.forEach(function(_, i) {
+    var btn = document.getElementById('opt'+i);
+    btn.disabled = true;
+    if(i === q.correct) btn.classList.add(isOk && i===oi ? 'correct' : 'reveal');
+    if(i === oi && !isOk) btn.classList.add('wrong');
+  });
+
+  var fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + (isOk ? 'ok' : 'err');
+  fb.innerHTML = (isOk ? '<strong>Correcto.</strong> ' : '<strong>Incorrecto.</strong> ') +
+    (q.explanation || '') +
+    (q.strategy ? '<div class="strategy-box"><b>Estrategia:</b> '+q.strategy+'</div>' : '');
+
+  document.getElementById('btn-next').className = 'btn-next visible';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   NEXT QUESTION
+══════════════════════════════════════════════════════════════════ */
+function nextQuestion() {
+  state.qi++;
+  if(state.qi >= state.questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+    window.scrollTo(0,0);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RESULTS
+══════════════════════════════════════════════════════════════════ */
+function showResults() {
+  clearInterval(state.timerInterval);
+  var elapsed = getElapsedStr();
+  var correct = state.answers.filter(function(a){return a.isOk;}).length;
+  var total = state.questions.length;
+  var pct = Math.round(correct/total*100);
+
+  // Save progress
+  var progress = loadProgress();
+  var h = loadHistory();
+  var today = new Date().toDateString();
+  var todayH = h.filter(function(x){return x.date===today;});
+  var todayC = todayH.reduce(function(s,x){return s+x.correct;},0);
+  var todayT = todayH.reduce(function(s,x){return s+x.total;},0);
+
+  if(state.currentModule==='reading' && state.currentTopic && state.currentTopic!=='all' && state.currentTopic!=='mixed') {
+    var key = 'r_'+state.currentTopic;
+    var old = progress[key]||{correct:0,total:0};
+    progress[key] = {correct:old.correct+correct, total:old.total+total};
+  } else if(state.currentModule==='grammar' && state.currentTopic && state.currentTopic!=='all' && state.currentTopic!=='mixed') {
+    var key2 = 'g_'+state.currentTopic;
+    var old2 = progress[key2]||{correct:0,total:0};
+    progress[key2] = {correct:old2.correct+correct, total:old2.total+total};
+  }
+  saveProgress(progress);
+  saveHistory({date:today, correct:correct, total:total, module:state.currentModule, topic:state.currentTopic});
+
+  // Score display
+  var scoreEl = document.getElementById('res-score-big');
+  scoreEl.textContent = correct+'/'+total;
+  scoreEl.className = 'results-score-big ' + (pct>=90?'excellent':pct>=75?'good':pct>=60?'ok':'bad');
+
+  var labels = {excellent:'Excelente — nivel listo para el examen', good:'Buen resultado — sigue practicando', ok:'Aceptable — refuerza los errores', bad:'Necesita más práctica en este bloque'};
+  document.getElementById('res-label').textContent = pct+'% de acierto · '+labels[pct>=90?'excellent':pct>=75?'good':pct>=60?'ok':'bad'];
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = total-correct;
+  document.getElementById('res-time').textContent = elapsed;
+
+  // Review
+  var list = document.getElementById('review-list');
+  list.innerHTML = '';
+  state.answers.forEach(function(a) {
+    var q = state.questions[a.qi];
+    var div = document.createElement('div');
+    div.className = 'review-item' + (a.isOk ? '' : ' wrong-item');
+    var chosenText = q.opts[a.chosen];
+    var correctText = q.opts[a.correct];
+    div.innerHTML = '<div class="review-q">P'+(a.qi+1)+': '+q.question+'</div>'+
+      '<div class="review-answer">'+
+        (a.isOk
+          ? '<span class="r">Correcto: '+correctText+'</span>'
+          : '<span class="w">Tu respuesta: '+chosenText+'</span> → <span class="r">Correcta: '+correctText+'</span>')+
+      '</div>'+
+      (a.isOk ? '' : '<div class="review-explanation">'+(q.explanation||'')+'</div>');
+    list.appendChild(div);
+  });
+
+  document.getElementById('res-retry').onclick = function(){startQuiz(state.currentModule, state.currentTopic);};
+  showScreen('results');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HOME STATS
+══════════════════════════════════════════════════════════════════ */
+function updateHomeStats() {
+  var h = loadHistory();
+  var p = loadProgress();
+  var today = new Date().toDateString();
+  var todayH = h.filter(function(x){return x.date===today;});
+  var todayC = todayH.reduce(function(s,x){return s+x.correct;},0);
+  var todayT = todayH.reduce(function(s,x){return s+x.total;},0);
+
+  document.getElementById('home-sessions').textContent = h.length;
+  document.getElementById('home-total').textContent = h.reduce(function(s,x){return s+x.total;},0);
+
+  var pctEl = document.getElementById('home-pct');
+  var subEl = document.getElementById('home-pct-sub');
+  if(todayT > 0) {
+    var pct = Math.round(todayC/todayT*100);
+    pctEl.textContent = pct+'%';
+    pctEl.className = 'val '+(pct>=90?'accent':pct>=75?'accent':'amber');
+    subEl.textContent = todayC+'/'+todayT+' hoy';
+  } else {
+    pctEl.textContent = '—';
+    subEl.textContent = 'Sin sesiones hoy';
+  }
+
+  // Reading progress
+  var rKeys = Object.keys(READING);
+  var rC = 0, rT = 0;
+  rKeys.forEach(function(k){ var x=p['r_'+k]||{correct:0,total:0}; rC+=x.correct; rT+=x.total; });
+  var rMax = rKeys.reduce(function(s,k){return s+READING[k].questions.length;},0) * 3;
+  document.getElementById('prog-reading').style.width = rT>0 ? Math.min(100, Math.round(rC/Math.max(rT,1)*100))+'%' : '0%';
+
+  // Grammar progress
+  var gKeys = Object.keys(GRAMMAR);
+  var gC = 0, gT = 0;
+  gKeys.forEach(function(k){ var x=p['g_'+k]||{correct:0,total:0}; gC+=x.correct; gT+=x.total; });
+  document.getElementById('prog-grammar').style.width = gT>0 ? Math.min(100, Math.round(gC/Math.max(gT,1)*100))+'%' : '0%';
+
+  // Mixed
+  var mix = h.filter(function(x){return x.module==='mixed';});
+  var mC = mix.reduce(function(s,x){return s+x.correct;},0);
+  var mT = mix.reduce(function(s,x){return s+x.total;},0);
+  document.getElementById('prog-mixed').style.width = mT>0 ? Math.min(100, Math.round(mC/mT*100))+'%' : '0%';
+}
+
+function confirmExit() {
+  if(confirm('¿Salir del ejercicio? Perderás el progreso de esta sesión.')) { goHome(); }
+}
+
+// Init
+updateHomeStats();
+</script>
+</body>
+</html>

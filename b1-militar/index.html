@@ -445,7 +445,7 @@ nav {
       <h3>Simulacros tipo examen</h3>
       <p>Dos variantes completas con estructura real: 30 textos de Reading y 30 huecos de gramática/vocabulario.</p>
       <div class="module-meta">
-        <span><b>2</b> variantes</span>
+        <span><b>4</b> variantes</span>
         <span><b>100</b> min</span>
         <span><b>PI</b> /10</span>
       </div>
@@ -1127,62 +1127,62 @@ const READING_EXTRA = [
 ];
 
 const EXAM_VARIANTS = {
-  pdf: {
-    label: 'Examen B 2024 + refuerzo',
-    desc: 'Estructura 30 Reading + 30 Grammar con los fallos reales integrados y relleno del banco actual.',
+  alfa: {
+    label: 'Simulacro Alfa',
+    desc: 'Examen nuevo con el mismo formato: textos cortos, distractores numéricos, personajes y gramática B1.',
     readingFocus: [
       {
-        passage: 'Dublin will be hot this weekend. A cool breeze from the Atlantic Ocean will hit Cork. Weather conditions will be <em>pleasant</em> during the day, but much cooler in the evenings. It will not rain before Tuesday.',
-        question: 'Saturday and Sunday daytime in Cork will be ____.',
-        opts: ['cold', 'cloudy', 'nice', 'wet'],
+        passage: 'The weather in Galway will be windy in the morning. By midday the temperature will be mild and the afternoon should be <em>pleasant</em>, although evenings will be colder near the coast.',
+        question: 'The afternoon weather in Galway will be ____.',
+        opts: ['stormy', 'freezing', 'nice', 'wet'],
         correct: 2,
         explanation: 'Pleasant equivale a nice. La trampa es no buscar una palabra copiada, sino el significado.',
         strategy: 'Sinónimo oculto: pleasant = nice / enjoyable / agreeable.'
       },
       {
-        passage: 'Taylor Swift was born in <span class="hl-num">1989</span>. She began writing songs professionally at the age of <span class="hl-num">14</span>. In <span class="hl-num">2005</span>, she signed with Big Machine Records to become a country singer.',
-        question: 'Taylor Swift ____.',
-        opts: ['won the best album award for four years', 'said the award was the best moment in her life', 'signed her first record contract when she was 14', 'is the world’s most powerful woman'],
-        correct: 2,
-        explanation: 'La firma del contrato se relaciona con 2005 y, por edad, con 16 aproximadamente; el examen oficial da como correcta la opción sobre el primer contrato. La idea entrenable es no mezclar cifras con acciones.',
-        strategy: 'Ancla numérica: nacimiento, edad al escribir, año del contrato y premios.'
+        passage: 'A young pilot started glider lessons at <span class="hl-num">15</span>. He passed his first theory test at <span class="hl-num">17</span> and entered the academy in <span class="hl-num">2024</span>, when he was <span class="hl-num">19</span>.',
+        question: 'At what age did he pass his first theory test?',
+        opts: ['15', '17', '19', '2024'],
+        correct: 1,
+        explanation: '17 va unido a passed his first theory test. 15 era la edad de inicio de las clases.',
+        strategy: 'Ancla numérica: cada cifra debe quedar pegada a su acción.'
       },
       {
-        passage: 'David likes cooking on the grill, but dad prefers preparing the fire. Mum and Sarah like preparing meals in the kitchen. They normally invite Melissa, the neighbour, to eat.',
-        question: 'Who cooks in the kitchen?',
-        opts: ['David', 'Dad', 'Mum', 'Melissa'],
+        passage: 'During the field exercise, Nora prepared the radios, Alex checked the route, Sam cooked inside the tent and Leo kept watch outside.',
+        question: 'Who cooked inside the tent?',
+        opts: ['Nora', 'Alex', 'Sam', 'Leo'],
         correct: 2,
-        explanation: 'Mum aparece asociada a preparing meals in the kitchen. David y Dad pertenecen a la zona de grill/fire.',
-        strategy: 'Mapa de personajes: David = grill · Dad = fire · Mum/Sarah = kitchen · Melissa = guest.'
+        explanation: 'Sam cooked inside the tent. Las demás acciones pertenecen a otros personajes.',
+        strategy: 'Mapa de personajes: Nora = radios · Alex = route · Sam = cooking · Leo = watch.'
       }
     ],
     grammarFocus: [
       {
-        passage: 'It will be my birthday soon and we _____ a barbecue down the beach.',
+        passage: 'The squadron has already booked the room and we _____ a briefing tomorrow morning.',
         question: 'Choose the correct option:',
         opts: ['were having', 'going to have', 'will to have', 'are going to have'],
         correct: 3,
-        explanation: 'Sujeto we + be going to: we are going to have. "Will to have" no existe.',
+        explanation: 'Sujeto we + be going to: we are going to have. Es un plan ya organizado.',
         strategy: 'Plan/intención ya decidida = be going to.'
       },
       {
-        passage: 'You do not have to worry about _____ there.',
+        passage: 'He was worried about _____ the listening test.',
         question: 'Choose the correct option:',
-        opts: ['get', 'arrive', 'getting', 'how go'],
+        opts: ['fail', 'to fail', 'failing', 'failed'],
         correct: 2,
-        explanation: 'After a preposition, use -ing: worry about getting there.',
+        explanation: 'After a preposition, use -ing: worried about failing.',
         strategy: 'About, after, before, without, instead of + gerundio.'
       },
       {
-        passage: 'You do not have to bring _____ to eat or drink because my mum will prepare all the food.',
+        passage: 'The instructor said we did not need to bring _____ except a pen.',
         question: 'Choose the best standard-English option:',
         opts: ['nothing', 'something', 'anything', 'everything'],
         correct: 2,
-        explanation: 'En inglés estándar, con do not se usa anything: do not have to bring anything. Si la plantilla oficial marca otra cosa, conviene revisarla porque sería una doble negativa.',
+        explanation: 'En inglés estándar, con did not se usa anything: did not need to bring anything.',
         strategy: 'Negativa + anything. Afirmativa + something. Nothing sin not.'
       },
       {
-        passage: 'The island is famous for its celebrations, and it _____ a major tourist attraction.',
+        passage: 'The small coastal town _____ a popular training destination in recent years.',
         question: 'Choose the correct option:',
         opts: ['would become', 'become', 'has become', 'becames'],
         correct: 2,
@@ -1190,7 +1190,7 @@ const EXAM_VARIANTS = {
         strategy: 'Resultado presente de un proceso pasado = present perfect.'
       },
       {
-        passage: 'Each festival is _____ by about 160,000 people.',
+        passage: 'The graduation ceremony was _____ by hundreds of families.',
         question: 'Choose the correct option:',
         opts: ['attended', 'come', 'visit', 'assist'],
         correct: 0,
@@ -1198,7 +1198,7 @@ const EXAM_VARIANTS = {
         strategy: 'Attended by = al que asisten/acuden.'
       },
       {
-        passage: 'They travel not only from nearby towns but also from the rest of the British Isles and _____ from abroad.',
+        passage: 'Candidates came from nearby towns and _____ from other countries.',
         question: 'Choose the correct option:',
         opts: ['just', 'included', 'quite', 'even'],
         correct: 3,
@@ -1206,7 +1206,7 @@ const EXAM_VARIANTS = {
         strategy: 'Even = incluso, cuando la información sorprende o amplía.'
       },
       {
-        passage: 'Shops sell Welsh music, books, pictures and clothes as _____ as food and drink.',
+        passage: 'The centre offers grammar practice as _____ as full reading tests.',
         question: 'Choose the correct option:',
         opts: ['long', 'well', 'good', 'far'],
         correct: 1,
@@ -1216,7 +1216,7 @@ const EXAM_VARIANTS = {
     ]
   },
   variante: {
-    label: 'Variante nueva anti-memoria',
+    label: 'Simulacro Bravo',
     desc: 'Mismo formato y mismas trampas, pero con textos y huecos distintos para no memorizar respuestas.',
     readingFocus: [
       {
@@ -1302,6 +1302,182 @@ const EXAM_VARIANTS = {
         strategy: 'Collocation fija: as well as.'
       }
     ]
+  },
+  charlie: {
+    label: 'Simulacro Charlie',
+    desc: 'Otra tanda completa con contexto militar/civil y trampas B1 equivalentes al formato oficial.',
+    readingFocus: [
+      {
+        passage: 'The air show began at <span class="hl-num">10:30</span> and finished after <span class="hl-num">4</span> hours. More than <span class="hl-num">12,000</span> visitors attended, but only <span class="hl-num">800</span> tickets were sold online.',
+        question: 'How many tickets were sold online?',
+        opts: ['10:30', '4', '12,000', '800'],
+        correct: 3,
+        explanation: '800 se refiere a tickets sold online. 12,000 es el total de visitantes.',
+        strategy: 'Diferencia total, duración, hora y cantidad parcial.'
+      },
+      {
+        passage: 'Ruth printed the forms, Daniel spoke to the visitors, Elena checked the passports and Victor prepared the room.',
+        question: 'Who checked the passports?',
+        opts: ['Ruth', 'Daniel', 'Elena', 'Victor'],
+        correct: 2,
+        explanation: 'Elena checked the passports. Todas las personas aparecen, pero solo una lleva esa acción.',
+        strategy: 'Tabla rápida: persona → acción.'
+      },
+      {
+        passage: 'The hotel was reasonably priced and close to the station. The rooms were simple, but most guests found them comfortable and clean.',
+        question: 'The hotel was ____.',
+        opts: ['very expensive', 'far from transport', 'affordable', 'dirty'],
+        correct: 2,
+        explanation: 'Reasonably priced equivale a affordable.',
+        strategy: 'Sinónimo oculto: reasonably priced = affordable / not expensive.'
+      }
+    ],
+    grammarFocus: [
+      {
+        passage: 'We have bought the tickets, so we _____ travel by train.',
+        question: 'Choose the correct option:',
+        opts: ['are going to', 'will to', 'going', 'are go to'],
+        correct: 0,
+        explanation: 'Plan ya decidido con evidencia: we are going to travel.',
+        strategy: 'Plan organizado = be going to.'
+      },
+      {
+        passage: 'Instead of _____ at home, he went to the library.',
+        question: 'Choose the correct option:',
+        opts: ['study', 'to study', 'studying', 'studied'],
+        correct: 2,
+        explanation: 'Instead of + gerundio: studying.',
+        strategy: 'Preposición + -ing.'
+      },
+      {
+        passage: 'There was _____ in the classroom when I arrived; everyone had already left.',
+        question: 'Choose the correct option:',
+        opts: ['anything', 'nothing', 'something', 'everything'],
+        correct: 1,
+        explanation: 'Frase afirmativa con sentido negativo: there was nothing.',
+        strategy: 'Nothing se usa sin not.'
+      },
+      {
+        passage: 'The old airport _____ a modern training centre.',
+        question: 'Choose the correct option:',
+        opts: ['has become', 'became to', 'become', 'would becoming'],
+        correct: 0,
+        explanation: 'Has become marca resultado actual.',
+        strategy: 'Transformación con efecto presente = has become.'
+      },
+      {
+        passage: 'The lecture was _____ by all first-year cadets.',
+        question: 'Choose the correct option:',
+        opts: ['attended', 'assisted', 'visited', 'came'],
+        correct: 0,
+        explanation: 'A lecture is attended by people.',
+        strategy: 'Attend a lecture/event; assist = ayudar.'
+      },
+      {
+        passage: 'The route was so easy that _____ the newest students completed it.',
+        question: 'Choose the correct option:',
+        opts: ['just', 'quite', 'even', 'included'],
+        correct: 2,
+        explanation: 'Even enfatiza que hasta los nuevos lo completaron.',
+        strategy: 'Even = incluso.'
+      },
+      {
+        passage: 'The app trains vocabulary as _____ as grammar.',
+        question: 'Choose the correct option:',
+        opts: ['well', 'good', 'long', 'far'],
+        correct: 0,
+        explanation: 'As well as = además de.',
+        strategy: 'Expresión fija: as well as.'
+      }
+    ]
+  },
+  delta: {
+    label: 'Simulacro Delta',
+    desc: 'Variante de velocidad para consolidar lectura de detalle y huecos de gramática recurrentes.',
+    readingFocus: [
+      {
+        passage: 'A language course started on <span class="hl-num">5</span> May. It lasted <span class="hl-num">6</span> weeks and included <span class="hl-num">18</span> grammar lessons and <span class="hl-num">12</span> reading tests.',
+        question: 'How many reading tests were included?',
+        opts: ['5', '6', '18', '12'],
+        correct: 3,
+        explanation: '12 va asociado a reading tests. 18 son grammar lessons.',
+        strategy: 'No confundas categorías cuando aparecen varios números.'
+      },
+      {
+        passage: 'In the workshop, Paula repaired the laptop, Marcos cleaned the screen, Julia updated the software and Kevin packed the cables.',
+        question: 'Who updated the software?',
+        opts: ['Paula', 'Marcos', 'Julia', 'Kevin'],
+        correct: 2,
+        explanation: 'Julia updated the software.',
+        strategy: 'En textos de cuatro personas, una tabla mental evita el cruce de acciones.'
+      },
+      {
+        passage: 'The trip was short but enjoyable. The guide was helpful and the museum was more interesting than the students expected.',
+        question: 'The guide was ____.',
+        opts: ['ready to help', 'boring', 'late', 'short'],
+        correct: 0,
+        explanation: 'Helpful equivale a ready to help.',
+        strategy: 'Helpful / willing to assist / ready to help son reformulaciones frecuentes.'
+      }
+    ],
+    grammarFocus: [
+      {
+        passage: 'She has saved enough money and she _____ buy a new laptop.',
+        question: 'Choose the correct option:',
+        opts: ['is going to', 'will to', 'goes to', 'going buy'],
+        correct: 0,
+        explanation: 'Intención previa: she is going to buy.',
+        strategy: 'Intención formada = be going to.'
+      },
+      {
+        passage: 'They left without _____ goodbye.',
+        question: 'Choose the correct option:',
+        opts: ['say', 'to say', 'saying', 'said'],
+        correct: 2,
+        explanation: 'Without + gerundio: saying.',
+        strategy: 'Without + -ing.'
+      },
+      {
+        passage: 'Did you see _____ unusual during the exercise?',
+        question: 'Choose the correct option:',
+        opts: ['nothing', 'anything', 'something', 'everything'],
+        correct: 1,
+        explanation: 'Pregunta neutra: anything.',
+        strategy: 'Pregunta neutra = anything; oferta = something.'
+      },
+      {
+        passage: 'This small blog _____ one of the most popular aviation websites.',
+        question: 'Choose the correct option:',
+        opts: ['has become', 'become', 'would become', 'becomes to'],
+        correct: 0,
+        explanation: 'Has become expresa cambio con resultado presente.',
+        strategy: 'Resultado presente = present perfect.'
+      },
+      {
+        passage: 'The final parade was _____ by several senior officers.',
+        question: 'Choose the correct option:',
+        opts: ['attended', 'assisted', 'visited', 'come'],
+        correct: 0,
+        explanation: 'Was attended by several officers.',
+        strategy: 'Attend an event, not assist an event.'
+      },
+      {
+        passage: 'The test was difficult; _____ experienced students made mistakes.',
+        question: 'Choose the correct option:',
+        opts: ['even', 'just', 'quite', 'included'],
+        correct: 0,
+        explanation: 'Even experienced students = incluso alumnos con experiencia.',
+        strategy: 'Even señala sorpresa.'
+      },
+      {
+        passage: 'The guide explains the rules as _____ as the scoring system.',
+        question: 'Choose the correct option:',
+        opts: ['well', 'good', 'long', 'far'],
+        correct: 0,
+        explanation: 'As well as = además de.',
+        strategy: 'Collocation fija.'
+      }
+    ]
   }
 };
 
@@ -1344,7 +1520,7 @@ function collectGrammarBank() {
 }
 
 function buildExamVariant(key) {
-  var variant = EXAM_VARIANTS[key] || EXAM_VARIANTS.pdf;
+  var variant = EXAM_VARIANTS[key] || EXAM_VARIANTS.alfa;
   var readingFocus = variant.readingFocus.map(function(q){return {...q, type:'reading', topic: variant.label+' · Reading', badge:q.badge || 'sinonimos'};});
   var grammarFocus = variant.grammarFocus.map(function(q){return {...q, type:'grammar', topic: variant.label+' · Grammar', badge:'gramatica'};});
 
@@ -1474,7 +1650,10 @@ function goExamSelect() {
 
   var randomBtn = document.createElement('button');
   randomBtn.className = 'topic-btn';
-  randomBtn.onclick = function(){startQuiz('exam', Math.random() > 0.5 ? 'pdf' : 'variante');};
+  randomBtn.onclick = function(){
+    var keys = Object.keys(EXAM_VARIANTS);
+    startQuiz('exam', keys[Math.floor(Math.random() * keys.length)]);
+  };
   randomBtn.innerHTML = '<div class="topic-btn-left"><div class="topic-btn-name">Intento aleatorio</div><div class="topic-btn-detail">Elige una variante al azar y cambia el orden de opciones.</div></div><div class="topic-btn-score">∞</div>';
   grid.appendChild(randomBtn);
 
@@ -1489,7 +1668,7 @@ function startQuiz(mod, topic) {
   if(mod === 'mixed') {
     questions = buildMixedQuiz();
   } else if(mod === 'exam') {
-    questions = buildExamVariant(topic || 'pdf');
+    questions = buildExamVariant(topic || 'alfa');
   } else if(mod === 'reading') {
     if(topic === 'all') {
       Object.keys(READING).forEach(function(k){

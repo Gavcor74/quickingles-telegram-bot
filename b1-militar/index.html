@@ -439,6 +439,20 @@ nav {
         <div class="module-progress-fill" id="prog-mixed" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--amber))"></div>
       </div>
     </div>
+
+    <div class="module-card mixed" onclick="goExamSelect()">
+      <div class="module-tag">60 preguntas</div>
+      <h3>Simulacros tipo examen</h3>
+      <p>Dos variantes completas con estructura real: 30 textos de Reading y 30 huecos de gramática/vocabulario.</p>
+      <div class="module-meta">
+        <span><b>2</b> variantes</span>
+        <span><b>100</b> min</span>
+        <span><b>PI</b> /10</span>
+      </div>
+      <div class="module-progress">
+        <div class="module-progress-fill" id="prog-exam" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--amber))"></div>
+      </div>
+    </div>
   </div>
 
   <div class="footer">B1 · AGBS LII Promoción · App de preparación personal — sin conexión requerida</div>
@@ -1013,6 +1027,337 @@ function buildMixedQuiz() {
   return all.slice(0,20);
 }
 
+const READING_EXTRA = [
+  {
+    passage: 'A new aviation museum opened in Seville in <span class="hl-num">2022</span>. During its first month it received <span class="hl-num">18,000</span> visitors, including <span class="hl-num">1,400</span> students. The guided tour lasts <span class="hl-num">75</span> minutes.',
+    question: 'How long is the guided tour?',
+    opts: ['75 minutes', '1,400 minutes', '18,000 visitors', '2022'],
+    correct: 0,
+    explanation: 'La pregunta pide duración. 75 minutes es el único dato asociado a la visita guiada.',
+    strategy: 'Ancla numérica: fecha, visitantes, estudiantes y duración no son intercambiables.'
+  },
+  {
+    passage: 'The academy library has <span class="hl-num">12</span> computers, opens at <span class="hl-num">8:30</span> and closes at <span class="hl-num">19:00</span>. Students can borrow up to <span class="hl-num">4</span> books for <span class="hl-num">21</span> days.',
+    question: 'How many books can a student borrow?',
+    opts: ['12', '8:30', '4', '21'],
+    correct: 2,
+    explanation: 'El texto asocia 4 con books. 21 es el número de días.',
+    strategy: 'Cuando todas las opciones son números reales, decide primero qué concepto pregunta el enunciado.'
+  },
+  {
+    passage: 'Captain Miller prepared the briefing, Sergeant Lewis checked the maps and Private Adams arranged the transport. Lieutenant Brown only confirmed the meeting time.',
+    question: 'Who checked the maps?',
+    opts: ['Captain Miller', 'Sergeant Lewis', 'Private Adams', 'Lieutenant Brown'],
+    correct: 1,
+    explanation: 'Sergeant Lewis es quien checked the maps. Las demás acciones existen, pero pertenecen a otras personas.',
+    strategy: 'Mapa de personajes: Miller = briefing · Lewis = maps · Adams = transport · Brown = time.'
+  },
+  {
+    passage: 'In the field kitchen, Laura prepares the salads, Martin cooks the meat outside and Helen serves the drinks. Oscar washes the dishes after lunch.',
+    question: 'Who cooks outside?',
+    opts: ['Laura', 'Martin', 'Helen', 'Oscar'],
+    correct: 1,
+    explanation: 'Martin cooks the meat outside. La trampa es recordar la acción pero cambiar la persona.',
+    strategy: 'En textos con varias personas, escribe inicial + acción antes de mirar opciones.'
+  },
+  {
+    passage: 'The morning was mild and dry, although the sky was grey. By the afternoon the wind became stronger, but visitors still described the walk as enjoyable.',
+    question: 'The morning weather was ____.',
+    opts: ['stormy', 'pleasant', 'freezing', 'wet'],
+    correct: 1,
+    explanation: 'Mild and dry equivale a pleasant en contexto. No busques la misma palabra: busca el significado.',
+    strategy: 'Sinónimo oculto: mild/dry puede aparecer como pleasant/nice en la opción correcta.'
+  },
+  {
+    passage: 'The instructor was helpful throughout the course. He answered questions clearly and gave extra examples when students looked confused.',
+    question: 'The instructor was ____.',
+    opts: ['strict', 'friendly and useful', 'confused', 'late'],
+    correct: 1,
+    explanation: 'Helpful se expresa como friendly and useful. La respuesta correcta reformula, no copia.',
+    strategy: 'Pregunta mental: ¿esta opción sería verdadera aunque use otras palabras?'
+  },
+  {
+    passage: 'The train to Cardiff leaves platform <span class="hl-num">6</span> at <span class="hl-num">14:20</span>. The journey takes <span class="hl-num">2</span> hours and tickets cost <span class="hl-num">£18</span> if bought online.',
+    question: 'How much are online tickets?',
+    opts: ['£18', '14:20', '6', '2 hours'],
+    correct: 0,
+    explanation: '£18 es el precio. Las demás cifras son plataforma, hora y duración.',
+    strategy: 'Subraya el símbolo de moneda: suele indicar precio, no hora ni duración.'
+  },
+  {
+    passage: 'Emma booked the hotel, Jack rented the car and Sophie bought the museum tickets. Daniel sent the group the final itinerary.',
+    question: 'Who rented the car?',
+    opts: ['Emma', 'Jack', 'Sophie', 'Daniel'],
+    correct: 1,
+    explanation: 'Jack rented the car. Todas las opciones son personas reales del texto.',
+    strategy: 'No respondas por recuerdo general; vuelve a la relación persona-acción.'
+  },
+  {
+    passage: 'The exhibition was well received by local families. Many parents said it was useful because children could touch the objects and ask questions.',
+    question: 'The exhibition was ____.',
+    opts: ['unpopular', 'successful', 'expensive', 'silent'],
+    correct: 1,
+    explanation: 'Well received significa successful/popular en este contexto.',
+    strategy: 'El examen cambia well received por successful o popular.'
+  },
+  {
+    passage: 'The sports test starts at <span class="hl-num">9:00</span>. Candidates must arrive <span class="hl-num">30</span> minutes early and bring <span class="hl-num">2</span> identity documents. The test has <span class="hl-num">5</span> parts.',
+    question: 'How many identity documents are required?',
+    opts: ['9:00', '30', '2', '5'],
+    correct: 2,
+    explanation: '2 va unido a identity documents. 5 son las partes del test.',
+    strategy: 'Cada cifra debe quedar pegada a su sustantivo.'
+  },
+  {
+    passage: 'Tom normally trains indoors, while Ana prefers running outside. Luis records the times and Marta prepares the water bottles.',
+    question: 'Who runs outside?',
+    opts: ['Tom', 'Ana', 'Luis', 'Marta'],
+    correct: 1,
+    explanation: 'Ana prefers running outside. Tom es indoor.',
+    strategy: 'Contrastes indoor/outdoor suelen convertirse en distractores cruzados.'
+  },
+  {
+    passage: 'The hotel room was small but comfortable. It was close to the station and the receptionist was willing to assist guests at any time.',
+    question: 'The receptionist was ____.',
+    opts: ['ready to help', 'far from the station', 'uncomfortable', 'small'],
+    correct: 0,
+    explanation: 'Willing to assist = ready to help.',
+    strategy: 'Assist/help es un par de sinónimos muy frecuente.'
+  }
+];
+
+const EXAM_VARIANTS = {
+  pdf: {
+    label: 'Examen B 2024 + refuerzo',
+    desc: 'Estructura 30 Reading + 30 Grammar con los fallos reales integrados y relleno del banco actual.',
+    readingFocus: [
+      {
+        passage: 'Dublin will be hot this weekend. A cool breeze from the Atlantic Ocean will hit Cork. Weather conditions will be <em>pleasant</em> during the day, but much cooler in the evenings. It will not rain before Tuesday.',
+        question: 'Saturday and Sunday daytime in Cork will be ____.',
+        opts: ['cold', 'cloudy', 'nice', 'wet'],
+        correct: 2,
+        explanation: 'Pleasant equivale a nice. La trampa es no buscar una palabra copiada, sino el significado.',
+        strategy: 'Sinónimo oculto: pleasant = nice / enjoyable / agreeable.'
+      },
+      {
+        passage: 'Taylor Swift was born in <span class="hl-num">1989</span>. She began writing songs professionally at the age of <span class="hl-num">14</span>. In <span class="hl-num">2005</span>, she signed with Big Machine Records to become a country singer.',
+        question: 'Taylor Swift ____.',
+        opts: ['won the best album award for four years', 'said the award was the best moment in her life', 'signed her first record contract when she was 14', 'is the world’s most powerful woman'],
+        correct: 2,
+        explanation: 'La firma del contrato se relaciona con 2005 y, por edad, con 16 aproximadamente; el examen oficial da como correcta la opción sobre el primer contrato. La idea entrenable es no mezclar cifras con acciones.',
+        strategy: 'Ancla numérica: nacimiento, edad al escribir, año del contrato y premios.'
+      },
+      {
+        passage: 'David likes cooking on the grill, but dad prefers preparing the fire. Mum and Sarah like preparing meals in the kitchen. They normally invite Melissa, the neighbour, to eat.',
+        question: 'Who cooks in the kitchen?',
+        opts: ['David', 'Dad', 'Mum', 'Melissa'],
+        correct: 2,
+        explanation: 'Mum aparece asociada a preparing meals in the kitchen. David y Dad pertenecen a la zona de grill/fire.',
+        strategy: 'Mapa de personajes: David = grill · Dad = fire · Mum/Sarah = kitchen · Melissa = guest.'
+      }
+    ],
+    grammarFocus: [
+      {
+        passage: 'It will be my birthday soon and we _____ a barbecue down the beach.',
+        question: 'Choose the correct option:',
+        opts: ['were having', 'going to have', 'will to have', 'are going to have'],
+        correct: 3,
+        explanation: 'Sujeto we + be going to: we are going to have. "Will to have" no existe.',
+        strategy: 'Plan/intención ya decidida = be going to.'
+      },
+      {
+        passage: 'You do not have to worry about _____ there.',
+        question: 'Choose the correct option:',
+        opts: ['get', 'arrive', 'getting', 'how go'],
+        correct: 2,
+        explanation: 'After a preposition, use -ing: worry about getting there.',
+        strategy: 'About, after, before, without, instead of + gerundio.'
+      },
+      {
+        passage: 'You do not have to bring _____ to eat or drink because my mum will prepare all the food.',
+        question: 'Choose the best standard-English option:',
+        opts: ['nothing', 'something', 'anything', 'everything'],
+        correct: 2,
+        explanation: 'En inglés estándar, con do not se usa anything: do not have to bring anything. Si la plantilla oficial marca otra cosa, conviene revisarla porque sería una doble negativa.',
+        strategy: 'Negativa + anything. Afirmativa + something. Nothing sin not.'
+      },
+      {
+        passage: 'The island is famous for its celebrations, and it _____ a major tourist attraction.',
+        question: 'Choose the correct option:',
+        opts: ['would become', 'become', 'has become', 'becames'],
+        correct: 2,
+        explanation: 'Has become conecta un cambio pasado con resultado presente: ahora es una atracción turística.',
+        strategy: 'Resultado presente de un proceso pasado = present perfect.'
+      },
+      {
+        passage: 'Each festival is _____ by about 160,000 people.',
+        question: 'Choose the correct option:',
+        opts: ['attended', 'come', 'visit', 'assist'],
+        correct: 0,
+        explanation: 'Passive voice: the festival is attended by people.',
+        strategy: 'Attended by = al que asisten/acuden.'
+      },
+      {
+        passage: 'They travel not only from nearby towns but also from the rest of the British Isles and _____ from abroad.',
+        question: 'Choose the correct option:',
+        opts: ['just', 'included', 'quite', 'even'],
+        correct: 3,
+        explanation: 'Even añade énfasis: incluso desde el extranjero.',
+        strategy: 'Even = incluso, cuando la información sorprende o amplía.'
+      },
+      {
+        passage: 'Shops sell Welsh music, books, pictures and clothes as _____ as food and drink.',
+        question: 'Choose the correct option:',
+        opts: ['long', 'well', 'good', 'far'],
+        correct: 1,
+        explanation: 'As well as = además de / también.',
+        strategy: 'As well as es una collocation fija.'
+      }
+    ]
+  },
+  variante: {
+    label: 'Variante nueva anti-memoria',
+    desc: 'Mismo formato y mismas trampas, pero con textos y huecos distintos para no memorizar respuestas.',
+    readingFocus: [
+      {
+        passage: 'A military open day was held in Zaragoza in <span class="hl-num">2025</span>. The event lasted <span class="hl-num">3</span> days and received <span class="hl-num">24,000</span> visitors. On Saturday alone, <span class="hl-num">9,500</span> people attended.',
+        question: 'How many people attended on Saturday?',
+        opts: ['2025', '3', '24,000', '9,500'],
+        correct: 3,
+        explanation: 'Saturday alone se asocia a 9,500. 24,000 es el total.',
+        strategy: 'Total y cifra parcial son una trampa típica.'
+      },
+      {
+        passage: 'Carlos cleaned the equipment, Irene checked the list, Pablo drove the van and Marta spoke to the instructor.',
+        question: 'Who checked the list?',
+        opts: ['Carlos', 'Irene', 'Pablo', 'Marta'],
+        correct: 1,
+        explanation: 'Irene checked the list. Las otras acciones son reales pero de otras personas.',
+        strategy: 'Persona + acción antes de responder.'
+      },
+      {
+        passage: 'The weather in Lugo was cool but pleasant. It was cloudy in the morning, although visitors said the afternoon walk was enjoyable.',
+        question: 'The afternoon walk was ____.',
+        opts: ['wet', 'enjoyable', 'dangerous', 'cancelled'],
+        correct: 1,
+        explanation: 'Enjoyable aparece como reformulación positiva del paseo; no se debe confundir cloudy con wet.',
+        strategy: 'No conviertas cloudy automáticamente en rain/wet.'
+      }
+    ],
+    grammarFocus: [
+      {
+        passage: 'Look at those dark clouds. It _____ rain soon.',
+        question: 'Choose the correct option:',
+        opts: ['will to', 'is going to', 'goes to', 'is going'],
+        correct: 1,
+        explanation: 'Evidencia visual presente: it is going to rain.',
+        strategy: 'Evidencia visible = going to.'
+      },
+      {
+        passage: 'She is interested in _____ a pilot after the academy.',
+        question: 'Choose the correct option:',
+        opts: ['become', 'to become', 'becoming', 'became'],
+        correct: 2,
+        explanation: 'Interested in + gerundio: becoming.',
+        strategy: 'Preposición + -ing.'
+      },
+      {
+        passage: 'I looked everywhere, but I could not find _____.',
+        question: 'Choose the correct option:',
+        opts: ['something', 'anything', 'nothing', 'everything'],
+        correct: 1,
+        explanation: 'Could not find anything es la forma estándar.',
+        strategy: 'Negación + anything.'
+      },
+      {
+        passage: 'This training centre _____ very popular with candidates.',
+        question: 'Choose the correct option:',
+        opts: ['has become', 'become', 'would become', 'becomes to'],
+        correct: 0,
+        explanation: 'Has become expresa el resultado actual de un cambio.',
+        strategy: 'Cambio con efecto presente = has become.'
+      },
+      {
+        passage: 'The ceremony was _____ by hundreds of relatives.',
+        question: 'Choose the correct option:',
+        opts: ['assisted', 'attended', 'visited', 'come'],
+        correct: 1,
+        explanation: 'Was attended by = contó con la asistencia de.',
+        strategy: 'No traducir asistir como assist en este contexto.'
+      },
+      {
+        passage: 'Some candidates came from Madrid and _____ from the Canary Islands.',
+        question: 'Choose the correct option:',
+        opts: ['even', 'quite', 'just', 'included'],
+        correct: 0,
+        explanation: 'Even from the Canary Islands = incluso desde Canarias.',
+        strategy: 'Even enfatiza una distancia o caso llamativo.'
+      },
+      {
+        passage: 'The course includes grammar and reading practice as _____ as full mock exams.',
+        question: 'Choose the correct option:',
+        opts: ['good', 'well', 'long', 'far'],
+        correct: 1,
+        explanation: 'As well as = además de.',
+        strategy: 'Collocation fija: as well as.'
+      }
+    ]
+  }
+};
+
+function shuffleCopy(items) {
+  var arr = items.slice();
+  for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr;
+}
+
+function withRandomOptions(q) {
+  var pairs = q.opts.map(function(opt, i){return {opt:opt, original:i};});
+  pairs = shuffleCopy(pairs);
+  var copy = {...q};
+  copy.opts = pairs.map(function(p){return p.opt;});
+  copy.correct = pairs.findIndex(function(p){return p.original === q.correct;});
+  return copy;
+}
+
+function collectReadingBank() {
+  var bank = [];
+  Object.keys(READING).forEach(function(k) {
+    READING[k].questions.forEach(function(q) {
+      bank.push({...q, type:'reading', topic: READING[k].label, badge: READING[k].badge, topicKey:k});
+    });
+  });
+  READING_EXTRA.forEach(function(q) {
+    bank.push({...q, type:'reading', topic:'Reading tipo examen', badge:'numerica'});
+  });
+  return bank;
+}
+
+function collectGrammarBank() {
+  var bank = [];
+  Object.keys(GRAMMAR).forEach(function(k) {
+    GRAMMAR[k].questions.forEach(function(q) {
+      bank.push({...q, type:'grammar', topic: GRAMMAR[k].label, badge: GRAMMAR[k].badge, topicKey:k});
+    });
+  });
+  return bank;
+}
+
+function buildExamVariant(key) {
+  var variant = EXAM_VARIANTS[key] || EXAM_VARIANTS.pdf;
+  var readingFocus = variant.readingFocus.map(function(q){return {...q, type:'reading', topic: variant.label+' · Reading', badge:q.badge || 'sinonimos'};});
+  var grammarFocus = variant.grammarFocus.map(function(q){return {...q, type:'grammar', topic: variant.label+' · Grammar', badge:'gramatica'};});
+
+  var readingPool = shuffleCopy(collectReadingBank());
+  var grammarPool = shuffleCopy(collectGrammarBank());
+  var reading = readingFocus.concat(readingPool).slice(0, 30);
+  var grammar = grammarFocus.concat(grammarPool).slice(0, 30);
+
+  reading = shuffleCopy(reading).map(function(q, i){return {...q, examPart:'Parte 1 · Reading', examNumber:i+1};});
+  grammar = shuffleCopy(grammar).map(function(q, i){return {...q, examPart:'Parte 2 · Gramática', examNumber:i+31};});
+  return reading.concat(grammar);
+}
+
 /* ══════════════════════════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════════════════════════ */
@@ -1109,6 +1454,33 @@ function goModuleSelect(mod) {
   showScreen('module');
 }
 
+function goExamSelect() {
+  state.currentModule = 'exam';
+  var title = document.getElementById('module-title');
+  var sub = document.getElementById('module-sub');
+  var grid = document.getElementById('topic-grid');
+  title.textContent = 'Simulacros tipo examen';
+  sub.textContent = 'Cada intento mantiene la estructura 30 Reading + 30 Grammar y reordena preguntas y opciones.';
+  grid.innerHTML = '';
+
+  Object.keys(EXAM_VARIANTS).forEach(function(k) {
+    var v = EXAM_VARIANTS[k];
+    var btn = document.createElement('button');
+    btn.className = 'topic-btn';
+    btn.onclick = function(){startQuiz('exam', k);};
+    btn.innerHTML = '<div class="topic-btn-left"><div class="topic-btn-name">'+v.label+'</div><div class="topic-btn-detail">'+v.desc+'</div></div><div class="topic-btn-score">60 →</div>';
+    grid.appendChild(btn);
+  });
+
+  var randomBtn = document.createElement('button');
+  randomBtn.className = 'topic-btn';
+  randomBtn.onclick = function(){startQuiz('exam', Math.random() > 0.5 ? 'pdf' : 'variante');};
+  randomBtn.innerHTML = '<div class="topic-btn-left"><div class="topic-btn-name">Intento aleatorio</div><div class="topic-btn-detail">Elige una variante al azar y cambia el orden de opciones.</div></div><div class="topic-btn-score">∞</div>';
+  grid.appendChild(randomBtn);
+
+  showScreen('module');
+}
+
 /* ══════════════════════════════════════════════════════════════════
    QUIZ START
 ══════════════════════════════════════════════════════════════════ */
@@ -1116,6 +1488,8 @@ function startQuiz(mod, topic) {
   var questions = [];
   if(mod === 'mixed') {
     questions = buildMixedQuiz();
+  } else if(mod === 'exam') {
+    questions = buildExamVariant(topic || 'pdf');
   } else if(mod === 'reading') {
     if(topic === 'all') {
       Object.keys(READING).forEach(function(k){
@@ -1134,7 +1508,10 @@ function startQuiz(mod, topic) {
     }
   }
   // shuffle
-  for(var i=questions.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));[questions[i],questions[j]]=[questions[j],questions[i]];}
+  if(mod !== 'exam') {
+    for(var i=questions.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));[questions[i],questions[j]]=[questions[j],questions[i]];}
+  }
+  questions = questions.map(withRandomOptions);
 
   state.currentModule = mod;
   state.currentTopic = topic;
@@ -1178,7 +1555,7 @@ function renderQuestion() {
   var pct = Math.round((state.qi / total) * 100);
 
   document.getElementById('quiz-prog-text').textContent = 'Pregunta '+(state.qi+1)+' de '+total;
-  document.getElementById('quiz-topic-label').textContent = q.topic || (READING[q.topicKey]||GRAMMAR[q.topicKey]||{}).label || '';
+  document.getElementById('quiz-topic-label').textContent = (q.examPart ? q.examPart+' ? P'+q.examNumber : '') || q.topic || (READING[q.topicKey]||GRAMMAR[q.topicKey]||{}).label || '';
   document.getElementById('quiz-bar-fill').style.width = pct + '%';
 
   var badgeClass = q.badge || 'gramatica';
@@ -1275,8 +1652,9 @@ function showResults() {
   scoreEl.textContent = correct+'/'+total;
   scoreEl.className = 'results-score-big ' + (pct>=90?'excellent':pct>=75?'good':pct>=60?'ok':'bad');
 
-  var labels = {excellent:'Excelente — nivel listo para el examen', good:'Buen resultado — sigue practicando', ok:'Aceptable — refuerza los errores', bad:'Necesita más práctica en este bloque'};
-  document.getElementById('res-label').textContent = pct+'% de acierto · '+labels[pct>=90?'excellent':pct>=75?'good':pct>=60?'ok':'bad'];
+  var labels = {excellent:'Excelente ? nivel listo para el examen', good:'Buen resultado ? sigue practicando', ok:'Aceptable ? refuerza los errores', bad:'Necesita m?s pr?ctica en este bloque'};
+  var pi = state.currentModule === 'exam' ? ' ? PI '+(correct/total*10).toFixed(2)+'/10' : '';
+  document.getElementById('res-label').textContent = pct+'% de acierto'+pi+' ? '+labels[pct>=90?'excellent':pct>=75?'good':pct>=60?'ok':'bad'];
   document.getElementById('res-correct').textContent = correct;
   document.getElementById('res-wrong').textContent = total-correct;
   document.getElementById('res-time').textContent = elapsed;
@@ -1348,6 +1726,11 @@ function updateHomeStats() {
   var mC = mix.reduce(function(s,x){return s+x.correct;},0);
   var mT = mix.reduce(function(s,x){return s+x.total;},0);
   document.getElementById('prog-mixed').style.width = mT>0 ? Math.min(100, Math.round(mC/mT*100))+'%' : '0%';
+
+  var exams = h.filter(function(x){return x.module==='exam';});
+  var eC = exams.reduce(function(s,x){return s+x.correct;},0);
+  var eT = exams.reduce(function(s,x){return s+x.total;},0);
+  document.getElementById('prog-exam').style.width = eT>0 ? Math.min(100, Math.round(eC/eT*100))+'%' : '0%';
 }
 
 function confirmExit() {

@@ -3,26 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>B1 Militar · AGBS 2026 · Ejército del Aire</title>
+<title>B1 Militar · AGBS 2026 · Quickinglés</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #07090f;
-  --surf1: #0e1422;
-  --surf2: #141d30;
-  --surf3: #1c2840;
-  --accent: #3b82f6;
-  --accent-dim: rgba(59,130,246,0.15);
-  --amber: #f59e0b;
-  --amber-dim: rgba(245,158,11,0.12);
-  --text: #dde4ef;
-  --muted: #5a6a85;
+  --bg: #0a0a0a;
+  --surf1: #141414;
+  --surf2: #1c1c1c;
+  --surf3: #242424;
+  --accent: #C9A84C;
+  --accent-dim: rgba(201,168,76,0.13);
+  --amber: #A67A2E;
+  --amber-dim: rgba(166,122,46,0.13);
+  --text: #F0EAE0;
+  --muted: #6B6050;
   --border: rgba(255,255,255,0.07);
-  --border2: rgba(59,130,246,0.25);
+  --border2: rgba(201,168,76,0.30);
   --success: #10b981;
   --danger: #ef4444;
-  --success-bg: rgba(16,185,129,0.12);
-  --danger-bg: rgba(239,68,68,0.12);
+  --success-bg: rgba(16,185,129,0.10);
+  --danger-bg: rgba(239,68,68,0.10);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -39,8 +39,8 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(59,130,246,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59,130,246,0.025) 1px, transparent 1px);
+    linear-gradient(rgba(201,168,76,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,0.025) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -55,7 +55,7 @@ nav {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 28px;
   border-bottom: 1px solid var(--border);
-  background: rgba(7,9,15,0.85);
+  background: rgba(10,10,10,0.92);
   backdrop-filter: blur(12px);
   position: sticky; top: 0; z-index: 100;
 }
@@ -136,7 +136,7 @@ nav {
 .module-card.grammar::before { background: var(--amber); }
 .module-card.mixed::before { background: linear-gradient(90deg, var(--accent), var(--amber)); }
 .module-card:hover {
-  border-color: rgba(255,255,255,0.15);
+  border-color: rgba(201,168,76,0.35);
   background: var(--surf2);
   transform: translateY(-2px);
 }
@@ -181,7 +181,7 @@ nav {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   width: 100%;
 }
-.topic-btn:hover { background: var(--surf2); border-color: rgba(255,255,255,0.14); }
+.topic-btn:hover { background: var(--surf2); border-color: rgba(201,168,76,0.35); }
 .topic-btn-left {}
 .topic-btn-name {
   font-family: 'Barlow Condensed', sans-serif;
@@ -211,7 +211,7 @@ nav {
   background: var(--surf1); border: 1px solid var(--border);
   padding: 4px 12px; border-radius: 4px;
 }
-.quiz-timer.warn { color: var(--amber); border-color: rgba(245,158,11,0.4); }
+.quiz-timer.warn { color: var(--accent); border-color: rgba(201,168,76,0.5); }
 .quiz-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 24px; }
 .quiz-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
 
@@ -220,10 +220,10 @@ nav {
   letter-spacing: 0.1em; text-transform: uppercase;
   padding: 3px 10px; border-radius: 3px; margin-bottom: 14px;
 }
-.type-badge.numerica { background: rgba(245,158,11,0.15); color: var(--amber); }
-.type-badge.personajes { background: rgba(59,130,246,0.15); color: var(--accent); }
+.type-badge.numerica { background: rgba(166,122,46,0.15); color: var(--amber); }
+.type-badge.personajes { background: rgba(201,168,76,0.15); color: var(--accent); }
 .type-badge.sinonimos { background: rgba(16,185,129,0.15); color: var(--success); }
-.type-badge.gramatica { background: rgba(168,85,247,0.15); color: #c084fc; }
+.type-badge.gramatica { background: rgba(166,122,46,0.18); color: #D4A030; }
 
 .passage {
   background: var(--surf1); border: 1px solid var(--border);
@@ -232,8 +232,8 @@ nav {
   padding: 18px 20px; font-size: 15px; line-height: 1.8;
   margin-bottom: 20px; color: var(--text);
 }
-.passage .hl-num { background: rgba(245,158,11,0.25); color: #fcd34d; border-radius: 2px; padding: 0 3px; }
-.passage .hl-who { background: rgba(59,130,246,0.25); color: #93c5fd; border-radius: 2px; padding: 0 3px; }
+.passage .hl-num { background: rgba(201,168,76,0.22); color: #E8C060; border-radius: 2px; padding: 0 3px; }
+.passage .hl-who { background: rgba(201,168,76,0.15); color: #D4AF6A; border-radius: 2px; padding: 0 3px; }
 .passage .hl-syn { background: rgba(16,185,129,0.2); color: #6ee7b7; border-radius: 2px; padding: 0 3px; }
 .passage .blank {
   display: inline-block; min-width: 80px; border-bottom: 2px solid var(--accent);
@@ -254,7 +254,7 @@ nav {
   display: flex; align-items: flex-start; gap: 12px;
   transition: all 0.15s; width: 100%;
 }
-.opt:hover:not(:disabled) { background: var(--surf2); border-color: rgba(255,255,255,0.15); }
+.opt:hover:not(:disabled) { background: var(--surf2); border-color: rgba(201,168,76,0.4); }
 .opt:disabled { cursor: default; }
 .opt-letter {
   font-family: 'Source Code Pro', monospace;
@@ -286,7 +286,7 @@ nav {
 .btn-next {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  background: var(--accent); color: #fff; border: none;
+  background: var(--accent); color: #0a0a0a; border: none;
   padding: 12px 28px; border-radius: 5px; cursor: pointer;
   transition: opacity 0.15s; display: none; width: 100%;
 }
@@ -331,7 +331,7 @@ nav {
 .btn-primary {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  background: var(--accent); color: #fff; border: none;
+  background: var(--accent); color: #0a0a0a; border: none;
   padding: 12px 24px; border-radius: 5px; cursor: pointer; flex: 1;
   transition: opacity 0.15s;
 }
@@ -361,7 +361,7 @@ nav {
 <!-- ═══════════════════════════════════════════════ HOME ═══ -->
 <div id="screen-home" class="screen active">
   <nav>
-    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <div class="nav-logo">Quick<span>inglés</span> · B1</div>
     <div class="nav-right">
       <div class="nav-stat">Sesiones: <b id="home-sessions">0</b></div>
       <div class="nav-stat">Total: <b id="home-total">0</b> preguntas</div>
@@ -369,7 +369,7 @@ nav {
   </nav>
 
   <div class="home-hero">
-    <div class="callsign">// AGBS · Proceso 2026022 · Proceso TTS</div>
+    <div class="callsign">// AGBS · PROCESO 2026022 · Quickinglés</div>
     <h1>Entrena.<br><em>Aprueba.</em><br>Vuela.</h1>
     <p>Preparación específica para el examen de inglés B1 militar de acceso a suboficiales — Ejército del Aire.</p>
   </div>
@@ -427,7 +427,7 @@ nav {
     </div>
 
     <div class="module-card" style="position:relative;overflow:hidden" onclick="goModuleSelect('real')">
-      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#10b981,#3b82f6)"></div>
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#C9A84C,#A67A2E)"></div>
       <div class="module-tag" style="background:rgba(16,185,129,0.15);color:#10b981">Fuente oficial</div>
       <h3>Examen Real</h3>
       <p>50 preguntas de gramática + 10 textos de comprensión de exámenes reales de convocatorias anteriores.</p>
@@ -437,7 +437,7 @@ nav {
         <span><b>Con solución</b></span>
       </div>
       <div class="module-progress">
-        <div class="module-progress-fill" id="prog-real" style="width:0%;background:linear-gradient(90deg,#10b981,#3b82f6)"></div>
+        <div class="module-progress-fill" id="prog-real" style="width:0%;background:linear-gradient(90deg,#C9A84C,#A67A2E)"></div>
       </div>
     </div>
 
@@ -456,13 +456,13 @@ nav {
     </div>
   </div>
 
-  <div class="footer">B1 · AGBS LII Promoción · App de preparación personal — sin conexión requerida</div>
+  <div class="footer">Quickinglés · B1 Militar · AGBS LII Promoción · quickingles.com</div>
 </div>
 
 <!-- ═══════════════════════════════════════════ MODULE SELECT ═══ -->
 <div id="screen-module" class="screen">
   <nav>
-    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <div class="nav-logo">Quick<span>inglés</span> · B1</div>
     <button class="nav-back" onclick="goHome()">← Inicio</button>
   </nav>
   <div class="topic-screen">
@@ -475,7 +475,7 @@ nav {
 <!-- ═══════════════════════════════════════════════ QUIZ ═══ -->
 <div id="screen-quiz" class="screen">
   <nav>
-    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <div class="nav-logo">Quick<span>inglés</span> · B1</div>
     <div class="nav-right">
       <div class="quiz-timer" id="timer">00:00</div>
       <button class="nav-back" onclick="confirmExit()">Salir</button>
@@ -496,7 +496,7 @@ nav {
 <!-- ════════════════════════════════════════════ RESULTS ═══ -->
 <div id="screen-results" class="screen">
   <nav>
-    <div class="nav-logo">B1 · <span>Ejército del Aire</span></div>
+    <div class="nav-logo">Quick<span>inglés</span> · B1</div>
     <button class="nav-back" onclick="goHome()">← Inicio</button>
   </nav>
   <div class="results-wrap">

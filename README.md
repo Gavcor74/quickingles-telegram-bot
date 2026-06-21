@@ -1,91 +1,79 @@
-﻿# Agente local en Python (sin API de OpenAI)
+﻿# Quickingles Telegram Bot
 
-Este proyecto usa **Ollama** en local, asi que no necesitas `OPENAI_API_KEY` ni consumes tokens de OpenAI.
+Bot de Telegram para generar borradores de contenido de Quickingles y enviarlos al canal de revision `@quickingles_test`.
 
-## 1) Instalar Ollama (una vez)
-Descarga e instala desde [https://ollama.com/download](https://ollama.com/download)
+## Version Vercel
 
-## 2) Descargar un modelo local (una vez)
-```powershell
-ollama pull llama3.2
+Esta version evita depender del VPS, EasyPanel, n8n, Redis u Ollama. Funciona con:
+
+- `/api/telegram`: webhook de Telegram para comandos como `/post_now`.
+- `/api/daily-post`: endpoint para Vercel Cron.
+- API externa compatible con OpenAI Chat Completions.
+
+Flujo actual recomendado:
+
+```text
+@quickinglesbot
+  -> /post_now o Vercel Cron
+  -> genera contenido con OPENAI_API_KEY
+  -> publica en @quickingles_test
+  -> revision manual
+  -> copiar/pegar al canal final
 ```
 
-## 3) Crear entorno virtual
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+## Variables en Vercel
+
+```env
+TELEGRAM_BOT_TOKEN=token_nuevo_de_botfather
+TELEGRAM_CHANNEL_ID=@quickingles_test
+TELEGRAM_ADMIN_USER_ID=tu_user_id_telegram
+OPENAI_API_KEY=tu_api_key
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4o-mini
+DAILY_POST_DAYS=mon,wed,fri
+DAILY_POST_HOUR=9
+DAILY_POST_MINUTE=0
+TZ=Europe/Madrid
+BRAND_SIGNATURE=- Jesus | Quickingles
+POST_LENGTH=medium
+TOPIC_POOL=phrasal verbs,collocations,slang,idioms,false friends,pronunciation tips,common mistakes,business english,travel english,listening hacks,small talk,email writing,interview english,grammar in context,vocabulary builder
+CUSTOM_PROMPT=
+CRON_SECRET=
 ```
 
-## 4) Instalar dependencias Python
-```powershell
-pip install -r requirements.txt
+Regenera el `TELEGRAM_BOT_TOKEN` en BotFather antes de desplegar, porque el token anterior aparecio en capturas.
+
+## Configurar webhook de Telegram
+
+Despues de desplegar en Vercel, ejecuta en el navegador o terminal:
+
+```text
+https://api.telegram.org/botTELEGRAM_BOT_TOKEN/setWebhook?url=https://TU-PROYECTO.vercel.app/api/telegram
 ```
 
-## 5) Configurar variables
-```powershell
-Copy-Item .env.example .env
+Comprueba el estado con:
+
+```text
+https://api.telegram.org/botTELEGRAM_BOT_TOKEN/getWebhookInfo
 ```
 
-Edita `.env` y rellena:
-- `TELEGRAM_BOT_TOKEN`: token de `@BotFather`
-- `TELEGRAM_CHANNEL_ID`: `@tu_canal` o id numerico del canal
-- `TELEGRAM_ADMIN_USER_ID`: tu user id de Telegram (opcional pero recomendado)
-- `DAILY_POST_DAYS`: dias en formato `mon,wed,fri`
-- `DAILY_POST_HOUR` y `DAILY_POST_MINUTE`: hora de publicacion
+## Cron
 
-## 6) Lanzar bot de Telegram
-```powershell
-python telegram_agent.py
+`vercel.json` incluye una ejecucion lunes, miercoles y viernes a las `07:00 UTC`, que en horario de verano corresponde a las `09:00` en Madrid.
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/daily-post",
+      "schedule": "0 7 * * 1,3,5"
+    }
+  ]
+}
 ```
 
-## Comandos del bot
-- `/start`: ayuda rapida
-- `/reset`: borra memoria de chat
-- `/status`: estado de automatizacion, temas, longitud y firma
-- `/start_daily`: activa publicacion programada
-- `/stop_daily`: desactiva publicacion programada
-- `/post_now`: publica un post al instante
+Si quieres evitar cualquier desfase horario, deja el cron desactivado al principio y usa solo `/post_now`.
 
-### Comandos para tipo de contenido y estilo
-- `/topics`: muestra catalogo y temas activos
-- `/set_topics phrasal verbs, collocations, slang`: define mezcla de temas
-- `/set_mode rotate`: rota temas para cubrir variedad
-- `/set_mode random`: elige tema aleatorio del pool
-- `/set_focus phrasal verbs`: fija un solo tipo de contenido
-- `/clear_focus`: vuelve al modo mezcla
-- `/set_length short|medium|long`: cambia longitud de los posts
-- `/set_signature - Jesus | Quickingles`: fija firma al final de cada post
+## Version VPS antigua
 
-Catalogo incluido:
-- phrasal verbs
-- collocations
-- slang
-- idioms
-- false friends
-- pronunciation tips
-- common mistakes
-- business english
-- travel english
-- listening hacks
-- small talk
-- email writing
-- interview english
-- grammar in context
-- vocabulary builder
-
-## Publicacion programada original
-- El bot genera contenido de ingles para hispanohablantes.
-- Guarda historial en `content.db`.
-- Antes de publicar, compara con posts anteriores para evitar repeticiones.
-
-## Memoria y datos locales
-- Conversaciones: `telegram_memory.json`
-- Historial de posts, temas y estado: `content.db`
-
-## Opcional: cambiar modelo
-```powershell
-$env:OLLAMA_MODEL="mistral"
-python telegram_agent.py
-```
-
-
+`telegram_agent.py` queda como version legacy para VPS/EasyPanel. Usa polling, SQLite local y Ollama, por lo que no es la ruta recomendada tras cancelar el VPS.

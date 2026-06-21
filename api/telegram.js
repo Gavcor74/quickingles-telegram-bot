@@ -37,8 +37,8 @@ export default async function handler(req, res) {
       } else {
         await telegram('sendMessage', { chat_id: chatId, text: 'Generando post... te aviso en cuanto se envie al canal de revision.' });
         const { title, topic, content } = await generatePost();
-        await telegram('sendMessage', { chat_id: TELEGRAM_CHANNEL_ID, text: content });
-        await saveNotionPost({ title, topic, content });
+        const sent = await telegram('sendMessage', { chat_id: TELEGRAM_CHANNEL_ID, text: content });
+        await saveNotionPost({ title, topic, content, telegramMessageId: sent?.result?.message_id });
         await telegram('sendMessage', { chat_id: chatId, text: `Post enviado a revision. Tema: ${topic}` });
       }
     } else {

@@ -11,8 +11,8 @@ export default async function handler(req, res) {
 
   try {
     const { title, topic, content } = await generatePost();
-    await telegram('sendMessage', { chat_id: TELEGRAM_CHANNEL_ID, text: content });
-    await saveNotionPost({ title, topic, content });
+    const sent = await telegram('sendMessage', { chat_id: TELEGRAM_CHANNEL_ID, text: content });
+    await saveNotionPost({ title, topic, content, telegramMessageId: sent?.result?.message_id });
     return res.status(200).json({ ok: true, topic });
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.message });

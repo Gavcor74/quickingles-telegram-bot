@@ -82,20 +82,20 @@ function buildPrompt(topic) {
   const customBlock = CUSTOM_PROMPT ? `\nInstrucciones extra del dueno del canal (obligatorias):\n${CUSTOM_PROMPT}\n` : '';
   return `Crea UN post para canal de Telegram sobre '${topic}'.
 Salida obligatoria con esta plantilla exacta (sin cambiar encabezados):
-🧠 [GANCHO EN PREGUNTA]
+ðŸ§  [GANCHO EN PREGUNTA]
 
-📌 [TITULO CORTO]
+ðŸ“Œ [TITULO CORTO]
 [Very short explanation in ENGLISH only (1-2 lines max), useful and specific]
 
-💬 English boost
+ðŸ’¬ English boost
 [One extra English line only, practical, memorable and natural]
 
-✨ 3 ejemplos utiles
+âœ¨ 3 ejemplos utiles
 - [Ejemplo 1: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 2: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 3: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 
-📝 Mini reto
+ðŸ“ Mini reto
 [Un ejercicio corto de practica, pero NO incluyas la solucion]
 
 Reglas obligatorias:
@@ -121,14 +121,19 @@ function sanitizePost(content, topic) {
   const firstIndex = lines.findIndex((line) => line.trim());
   if (firstIndex >= 0) {
     const first = lines[firstIndex].trim();
-    if (['🧠', '🧠 ?', '🧠?', ''].includes(first) || (first.startsWith('🧠') && first.replace('🧠', '').trim().length < 6)) {
-      lines[firstIndex] = `🧠 ¿Sabías que dominar ${topic} te hace sonar más natural en inglés?`;
+    if (['ðŸ§ ', 'ðŸ§  ?', 'ðŸ§ ?', ''].includes(first) || (first.startsWith('ðŸ§ ') && first.replace('ðŸ§ ', '').trim().length < 6)) {
+      lines[firstIndex] = `ðŸ§  Â¿SabÃ­as que dominar ${topic} te hace sonar mÃ¡s natural en inglÃ©s?`;
     }
   }
   text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
-  if (BRAND_SIGNATURE && !text.toLowerCase().endsWith(BRAND_SIGNATURE.toLowerCase())) {
+
+  if (BRAND_SIGNATURE) {
+    const escapedSignature = BRAND_SIGNATURE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const duplicateSignaturePattern = new RegExp(`(?:\\n\\s*)?(?:${escapedSignature}\\s*)+$`, 'i');
+    text = text.replace(duplicateSignaturePattern, '').trimEnd();
     text = `${text}\n\n${BRAND_SIGNATURE}`;
   }
+
   return text;
 }
 

@@ -12,9 +12,14 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip().strip('"').stri
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "").strip()
 TELEGRAM_ADMIN_USER_ID = os.getenv("TELEGRAM_ADMIN_USER_ID", "").strip()
 
+AI_PROVIDER = os.getenv("AI_PROVIDER", "openai").strip().lower()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
+ANTHROPIC_BASE_URL = os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com").rstrip("/")
+ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5").strip()
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", "1200"))
 
 TIMEZONE = os.getenv("TZ", "Europe/Madrid")
 DAILY_POST_DAYS = os.getenv("DAILY_POST_DAYS", "mon,wed,fri").lower()
@@ -157,11 +162,10 @@ def sanitize_generated_post(content: str, topic: str) -> str:
     return text
 
 
-def generate_post() -> tuple[str, str]:
+def call_openai(topic: str) -> str:
     if not OPENAI_API_KEY:
         raise RuntimeError("Falta OPENAI_API_KEY en variables de entorno.")
 
-    topic = choose_topic()
     payload = {
         "model": OPENAI_MODEL,
         "messages": [
@@ -169,6 +173,7 @@ def generate_post() -> tuple[str, str]:
             {"role": "user", "content": build_content_prompt(topic)},
         ],
         "temperature": 0.8,
+        "max_tokens": MAX_TOKENS,
     }
     response = requests.post(
         f"{OPENAI_BASE_URL}/chat/completions",
@@ -181,7 +186,46 @@ def generate_post() -> tuple[str, str]:
     )
     response.raise_for_status()
     data = response.json()
-    content = data["choices"][0]["message"]["content"]
+    return data["choices"][0]["message"]["content"]
+
+
+def call_anthropic(topic: str) -> str:
+    if not ANTHROPIC_API_KEY:
+        raise RuntimeError("Falta ANTHROPIC_API_KEY en variables de entorno.")
+
+    payload = {
+        "model": ANTHROPIC_MODEL,
+        "max_tokens": MAX_TOKENS,
+        "temperature": 0.8,
+        "system": CONTENT_SYSTEM_PROMPT,
+        "messages": [
+            {"role": "user", "content": build_content_prompt(topic)},
+        ],
+    }
+    response = requests.post(
+        f"{ANTHROPIC_BASE_URL}/v1/messages",
+        headers={
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=55,
+    )
+    response.raise_for_status()
+    data = response.json()
+    return "".join(block.get("text", "") for block in data.get("content", []) if block.get("type") == "text")
+
+
+def generate_post() -> tuple[str, str]:
+    topic = choose_topic()
+    if AI_PROVIDER == "anthropic":
+        content = call_anthropic(topic)
+    elif AI_PROVIDER == "openai":
+        content = call_openai(topic)
+    else:
+        raise RuntimeError("AI_PROVIDER debe ser 'openai' o 'anthropic'.")
+
     return sanitize_generated_post(content, topic), topic
 
 
@@ -211,3 +255,4 @@ def local_schedule_matches_now() -> bool:
     now = datetime.now(ZoneInfo(TIMEZONE))
     weekday = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"][now.weekday()]
     return weekday in days and now.hour == DAILY_POST_HOUR
+

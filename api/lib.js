@@ -18,6 +18,14 @@ const CUSTOM_PROMPT = clean(process.env.CUSTOM_PROMPT || '');
 const NOTION_API_KEY = clean(process.env.NOTION_API_KEY);
 const NOTION_DATABASE_ID = clean(process.env.NOTION_DATABASE_ID);
 
+const EMOJI = {
+  brain: String.fromCodePoint(0x1f9e0),
+  pin: String.fromCodePoint(0x1f4cc),
+  speech: String.fromCodePoint(0x1f4ac),
+  sparkle: String.fromCodePoint(0x2728),
+  note: String.fromCodePoint(0x1f4dd),
+};
+
 const TOPICS = [
   'phrasal verbs',
   'collocations',
@@ -43,6 +51,13 @@ const CONTENT_SYSTEM_PROMPT =
 
 function clean(value) {
   return String(value || '').trim().replace(/^['"]|['"]$/g, '');
+}
+
+function plain(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 function topicPool() {
@@ -88,20 +103,20 @@ function buildPrompt(topic, recentPosts = []) {
 
   return `Crea UN post para canal de Telegram sobre '${topic}'.
 Salida obligatoria con esta plantilla exacta (sin cambiar encabezados):
-ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â  [GANCHO EN PREGUNTA]
+${EMOJI.brain} [GANCHO EN PREGUNTA]
 
-ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…â€™ [TITULO CORTO]
+${EMOJI.pin} [TITULO CORTO]
 [Very short explanation in ENGLISH only (1-2 lines max), useful and specific]
 
-ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¬ English boost
+${EMOJI.speech} English boost
 [One extra English line only, practical, memorable and natural]
 
-ÃƒÂ¢Ã…â€œÃ‚Â¨ 3 ejemplos utiles
+${EMOJI.sparkle} 3 ejemplos utiles
 - [Ejemplo 1: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 2: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 3: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 
-ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â Mini reto
+${EMOJI.note} Mini reto
 [Un ejercicio corto de practica, pero NO incluyas la solucion]
 
 Reglas obligatorias:
@@ -126,26 +141,33 @@ ${customBlock}
 Devuelve SOLO el post final. No anadas comentarios extra.`;
 }
 
+function isSignatureLine(line) {
+  const normalized = plain(line)
+    .replace(/[|]/g, ' | ')
+    .replace(/[^a-z0-9|\s-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return /^[-–—]?\s*jesus\s*\|\s*quickingles$/.test(normalized)
+    || /^[-–—]?\s*jesus\s*\|\s*quickingles$/.test(normalized);
+}
+
 function sanitizePost(content, topic) {
   let text = String(content || '').trim().replace(/\[[^\]]+\]/g, '');
   const lines = text.split('\n').map((line) => line.trimEnd());
   const firstIndex = lines.findIndex((line) => line.trim());
   if (firstIndex >= 0) {
     const first = lines[firstIndex].trim();
-    if (['ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â ', 'ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â  ?', 'ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â ?', ''].includes(first) || (first.startsWith('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â ') && first.replace('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â ', '').trim().length < 6)) {
-      lines[firstIndex] = `ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â  Ãƒâ€šÃ‚Â¿SabÃƒÆ’Ã‚Â­as que dominar ${topic} te hace sonar mÃƒÆ’Ã‚Â¡s natural en inglÃƒÆ’Ã‚Â©s?`;
+    if ([EMOJI.brain, `${EMOJI.brain} ?`, `${EMOJI.brain}?`, ''].includes(first) || (first.startsWith(EMOJI.brain) && first.replace(EMOJI.brain, '').trim().length < 6)) {
+      lines[firstIndex] = `${EMOJI.brain} Sabias que dominar ${topic} te hace sonar mas natural en ingles?`;
     }
   }
+
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+  while (lines.length && isSignatureLine(lines[lines.length - 1])) lines.pop();
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+
   text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
-
-  if (BRAND_SIGNATURE) {
-    const escapedSignature = BRAND_SIGNATURE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const duplicateSignaturePattern = new RegExp(`(?:\\n\\s*)?(?:${escapedSignature}\\s*)+$`, 'i');
-    text = text.replace(duplicateSignaturePattern, '').trimEnd();
-    text = `${text}\n\n${BRAND_SIGNATURE}`;
-  }
-
-  return text;
+  return BRAND_SIGNATURE ? `${text}\n\n${BRAND_SIGNATURE}` : text;
 }
 
 async function callAnthropic(topic, recentPosts = []) {
@@ -234,16 +256,9 @@ async function getRecentNotionPosts(limit = 20) {
     return {
       title: extractPlainText(properties.Idea || properties.Name || properties.Title) || 'Sin titulo',
       topic: extractPlainText(properties.Topic || properties.Tema || properties.Canal),
-      body: extractPlainText(properties['DescripciÃƒÆ’Ã‚Â³n'] || properties.Descripcion || properties.Description || properties.Body),
+      body: extractPlainText(properties.Descripcion || properties.Description || properties.Body),
     };
   });
-}
-
-function plain(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
 }
 
 function findProperty(properties, candidates, type) {
@@ -255,6 +270,16 @@ function findProperty(properties, candidates, type) {
   return Object.keys(properties).find((name) => {
     const prop = properties[name];
     return (!type || prop.type === type) && normalizedCandidates.some((candidate) => plain(name).includes(candidate));
+  });
+}
+
+function findPropertyByOption(properties, preferredNames, type, exclude = []) {
+  return Object.keys(properties).find((name) => {
+    if (exclude.includes(name)) return false;
+    const prop = properties[name];
+    if (type && prop.type !== type) return false;
+    const options = prop?.[prop.type]?.options || [];
+    return options.some((option) => preferredNames.some((preferred) => plain(option.name) === plain(preferred)));
   });
 }
 
@@ -292,12 +317,12 @@ function topicTypeCandidates(topic) {
     slang: ['Slang'],
     idioms: ['Idiom', 'Idioms'],
     'false friends': ['False Friend', 'False friends'],
-    'pronunciation tips': ['PronunciaciÃƒÂ³n', 'Pronunciation'],
-    'common mistakes': ['Error comÃƒÂºn', 'Common mistake'],
+    'pronunciation tips': ['Pronunciacion', 'Pronunciation'],
+    'common mistakes': ['Error comun', 'Common mistake'],
     'business english': ['Business English'],
     'travel english': ['Travel English'],
     'email writing': ['Writing'],
-    'grammar in context': ['GramÃƒÂ¡tica', 'Grammar'],
+    'grammar in context': ['Gramatica', 'Grammar'],
     'vocabulary builder': ['Vocabulario', 'Vocabulary'],
   };
   return map[topic] || [topic];
@@ -322,6 +347,7 @@ function hashText(value) {
   }
   return Math.abs(hash >>> 0).toString(16);
 }
+
 export async function saveNotionPost({ title, topic, content, telegramMessageId }) {
   if (!NOTION_API_KEY || !NOTION_DATABASE_ID) return;
 
@@ -334,25 +360,26 @@ export async function saveNotionPost({ title, topic, content, telegramMessageId 
     properties[titleName] = { title: [{ text: { content: title.slice(0, 120) } }] };
   }
 
-  const descriptionName = findProperty(schema, ['DescripciÃƒÂ³n', 'Descripcion', 'Description', 'Body'], 'rich_text');
+  const descriptionName = findProperty(schema, ['Descripcion', 'Description', 'Body'], 'rich_text');
   if (descriptionName) {
     properties[descriptionName] = { rich_text: [{ text: { content: content.slice(0, 1900) } }] };
   }
 
   const channelName = findProperty(schema, ['Canal', 'Channel']);
   if (channelName) {
-    const value = propertyValue(schema[channelName], 'Ã°Å¸â€œÂ¢ QuickinglÃƒÂ©s');
+    const value = propertyValue(schema[channelName], 'Quickingles');
     if (value) properties[channelName] = value;
   }
 
-  const statusName = findProperty(schema, ['Estado', 'Status']);
+  const statusName = findPropertyByOption(schema, ['Borrador'], undefined) || findProperty(schema, ['Estado', 'Status']);
   if (statusName) {
     const prop = schema[statusName];
     const value = propertyValue(prop, optionName(prop, ['Borrador', 'Idea', 'En proceso']));
     if (value) properties[statusName] = value;
   }
 
-  const editorialStatusName = findProperty(schema, ['Estatus', 'Estado editorial', 'Revision', 'RevisiÃ³n']);
+  const editorialStatusName = findPropertyByOption(schema, ['Generada'], undefined, statusName ? [statusName] : [])
+    || findProperty(schema, ['Estatus', 'Estado editorial', 'Revision'], undefined);
   if (editorialStatusName && editorialStatusName !== statusName) {
     const prop = schema[editorialStatusName];
     const value = propertyValue(prop, optionName(prop, ['Generada', 'Generado']));
@@ -362,10 +389,9 @@ export async function saveNotionPost({ title, topic, content, telegramMessageId 
   const originName = findProperty(schema, ['Origen', 'Source']);
   if (originName) {
     const prop = schema[originName];
-    const value = propertyValue(prop, optionName(prop, ['Bot', 'Vercel Bot', 'AutomÃ¡tico', 'Automatico']));
+    const value = propertyValue(prop, optionName(prop, ['Bot Vercel', 'Bot', 'Vercel Bot', 'Automatico']));
     if (value) properties[originName] = value;
   }
-
 
   const slug = `${new Date().toISOString().slice(0, 10)}-${slugify(title)}`;
   const slugName = findProperty(schema, ['ID Bot / Slug', 'Slug', 'ID Bot', 'Bot ID'], 'rich_text');
@@ -382,12 +408,13 @@ export async function saveNotionPost({ title, topic, content, telegramMessageId 
   if (telegramMessageName && telegramMessageId) {
     properties[telegramMessageName] = { rich_text: [{ text: { content: String(telegramMessageId) } }] };
   }
+
   const dateName = findProperty(schema, ['Fecha', 'Date'], 'date');
   if (dateName) {
     properties[dateName] = { date: { start: new Date().toISOString().slice(0, 10) } };
   }
 
-  const publishedName = findProperty(schema, ['Publicado', 'Publicacion', 'PublicaciÃƒÂ³n'], 'checkbox');
+  const publishedName = findProperty(schema, ['Publicado', 'Publicacion'], 'checkbox');
   if (publishedName) {
     properties[publishedName] = { checkbox: false };
   }
@@ -414,12 +441,13 @@ export async function saveNotionPost({ title, topic, content, telegramMessageId 
     }),
   });
 }
+
 function extractTitle(content, topic) {
   const titleLine = content
     .split('\n')
     .map((line) => line.trim())
-    .find((line) => line && !line.startsWith('ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â '));
-  return (titleLine || `Post Quickingles: ${topic}`).replace(/^ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…â€™\s*/, '').slice(0, 120);
+    .find((line) => line && !line.startsWith(EMOJI.brain));
+  return (titleLine || `Post Quickingles: ${topic}`).replace(/^📌\s*/, '').slice(0, 120);
 }
 
 export async function generatePost() {

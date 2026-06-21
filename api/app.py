@@ -1,5 +1,6 @@
 ﻿import json
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse
 
 from api._bot import TELEGRAM_CHANNEL_ID, generate_post, is_authorized, send_message
 
@@ -12,9 +13,18 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(payload).encode("utf-8"))
 
     def do_GET(self) -> None:
-        self._send_json(200, {"ok": True, "service": "quickingles-telegram-webhook"})
+        path = urlparse(self.path).path.rstrip("/") or "/"
+        if path in {"", "/", "/api", "/api/telegram"}:
+            self._send_json(200, {"ok": True, "service": "quickingles-content-bot"})
+            return
+        self._send_json(404, {"ok": False, "error": "not_found"})
 
     def do_POST(self) -> None:
+        path = urlparse(self.path).path.rstrip("/") or "/"
+        if path != "/api/telegram":
+            self._send_json(404, {"ok": False, "error": "not_found"})
+            return
+
         length = int(self.headers.get("content-length", "0"))
         raw = self.rfile.read(length).decode("utf-8") if length else "{}"
         chat_id = None

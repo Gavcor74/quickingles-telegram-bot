@@ -1,27 +1,27 @@
-﻿# Quickingles Telegram Bot
+﻿# Quickingles Content Bot
 
-Bot de Telegram para generar borradores de contenido de Quickingles y enviarlos al canal de revision `@quickingles_test`.
+Bot serverless para generar borradores de contenido de Quickingles desde Telegram y enviarlos al canal de revision `@quickingles_test`.
 
-## Version Vercel
+Este repo esta preparado para Vercel con un unico entrypoint Python:
 
-Esta version evita depender del VPS, EasyPanel, n8n, Redis u Ollama. Funciona con:
+```toml
+[tool.vercel]
+entrypoint = "api.app:handler"
+```
 
-- `/api/telegram`: webhook de Telegram para comandos como `/post_now`.
-- `/api/daily-post`: endpoint para Vercel Cron.
-- Anthropic Claude u OpenAI como proveedor de IA.
-
-Flujo actual recomendado:
+## Flujo
 
 ```text
 @quickinglesbot
-  -> /post_now o Vercel Cron
-  -> genera contenido con Claude u OpenAI
-  -> publica en @quickingles_test
+  -> /post_now
+  -> Vercel /api/telegram
+  -> Claude genera el borrador
+  -> se envia a @quickingles_test
   -> revision manual
   -> copiar/pegar al canal final
 ```
 
-## Variables en Vercel para Claude
+## Variables en Vercel
 
 ```env
 TELEGRAM_BOT_TOKEN=token_nuevo_de_botfather
@@ -32,56 +32,39 @@ ANTHROPIC_API_KEY=tu_api_key_de_claude
 ANTHROPIC_BASE_URL=https://api.anthropic.com
 ANTHROPIC_MODEL=claude-sonnet-4-5
 MAX_TOKENS=1200
-DAILY_POST_DAYS=mon,wed,fri
-DAILY_POST_HOUR=9
-DAILY_POST_MINUTE=0
 APP_TIMEZONE=Europe/Madrid
 BRAND_SIGNATURE=- Jesus | Quickingles
 POST_LENGTH=medium
 TOPIC_POOL=phrasal verbs,collocations,slang,idioms,false friends,pronunciation tips,common mistakes,business english,travel english,listening hacks,small talk,email writing,interview english,grammar in context,vocabulary builder
 CUSTOM_PROMPT=
-CRON_SECRET=
 ```
 
-Si Anthropic te muestra otro identificador de modelo disponible en la consola, puedes sustituir solo `ANTHROPIC_MODEL` sin tocar codigo.
+No uses `TZ` en Vercel; esta reservada. Usa `APP_TIMEZONE`.
 
-## Variables alternativas para OpenAI
+## Crear proyecto limpio en Vercel
 
-```env
-AI_PROVIDER=openai
-OPENAI_API_KEY=tu_api_key
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o-mini
-MAX_TOKENS=1200
-```
+1. Importa `Gavcor74/quickingles-telegram-bot`.
+2. Nombre recomendado: `quickingles-content-bot`.
+3. Preset: Python.
+4. Root Directory: `./`.
+5. Build/Output: valores por defecto.
+6. Anade las variables anteriores.
+7. Deploy.
 
-Regenera el `TELEGRAM_BOT_TOKEN` en BotFather antes de desplegar, porque el token anterior aparecio en capturas.
+## Configurar webhook
 
-## Configurar webhook de Telegram
-
-Despues de desplegar en Vercel, ejecuta en el navegador o terminal:
+Cuando Vercel despliegue bien, registra el webhook:
 
 ```text
 https://api.telegram.org/botTELEGRAM_BOT_TOKEN/setWebhook?url=https://TU-PROYECTO.vercel.app/api/telegram
 ```
 
-Comprueba el estado con:
+Comprueba:
 
 ```text
 https://api.telegram.org/botTELEGRAM_BOT_TOKEN/getWebhookInfo
 ```
 
-## Cron
+## Pendiente
 
-El cron queda desactivado inicialmente para evitar bloquear el primer deploy. Primero prueba `/post_now`; despues podemos reactivar una programacion compatible con tu plan de Vercel.
-
-```json
-{}
-```
-
-Si quieres evitar cualquier desfase horario, deja el cron desactivado al principio y usa solo `/post_now`.
-
-## Version VPS antigua
-
-`telegram_agent.py` queda como version legacy para VPS/EasyPanel. Usa polling, SQLite local y Ollama, por lo que no es la ruta recomendada tras cancelar el VPS.
-
+La programacion automatica queda fuera del primer despliegue para evitar ruido. Primero dejamos estable `/post_now`; despues anadimos cron si hace falta.

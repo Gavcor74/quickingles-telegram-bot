@@ -15,6 +15,8 @@ const APP_TIMEZONE = clean(process.env.APP_TIMEZONE || 'Europe/Madrid');
 const BRAND_SIGNATURE = clean(process.env.BRAND_SIGNATURE || '- Jesus | Quickingles');
 const POST_LENGTH = clean(process.env.POST_LENGTH || 'medium').toLowerCase();
 const CUSTOM_PROMPT = clean(process.env.CUSTOM_PROMPT || '');
+const NOTION_API_KEY = clean(process.env.NOTION_API_KEY);
+const NOTION_DATABASE_ID = clean(process.env.NOTION_DATABASE_ID);
 
 const TOPICS = [
   'phrasal verbs',
@@ -78,24 +80,28 @@ function topicGuidance(topic) {
   return guidance[topic] || 'Haz el contenido practico, especifico y util para hispanohablantes adultos que quieren sonar mas naturales.';
 }
 
-function buildPrompt(topic) {
+function buildPrompt(topic, recentPosts = []) {
   const customBlock = CUSTOM_PROMPT ? `\nInstrucciones extra del dueno del canal (obligatorias):\n${CUSTOM_PROMPT}\n` : '';
+  const recentBlock = recentPosts.length
+    ? recentPosts.map((post) => `- ${post.title}${post.topic ? ` (${post.topic})` : ''}`).join('\n')
+    : '- (sin historial disponible)';
+
   return `Crea UN post para canal de Telegram sobre '${topic}'.
 Salida obligatoria con esta plantilla exacta (sin cambiar encabezados):
-ðŸ§  [GANCHO EN PREGUNTA]
+🧠 [GANCHO EN PREGUNTA]
 
-ðŸ“Œ [TITULO CORTO]
+📌 [TITULO CORTO]
 [Very short explanation in ENGLISH only (1-2 lines max), useful and specific]
 
-ðŸ’¬ English boost
+💬 English boost
 [One extra English line only, practical, memorable and natural]
 
-âœ¨ 3 ejemplos utiles
+✨ 3 ejemplos utiles
 - [Ejemplo 1: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 2: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 3: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 
-ðŸ“ Mini reto
+📝 Mini reto
 [Un ejercicio corto de practica, pero NO incluyas la solucion]
 
 Reglas obligatorias:
@@ -111,6 +117,11 @@ Reglas obligatorias:
 10) El mini reto debe invitar a producir ingles de verdad, no a dar una opinion vaga.
 Guia especifica para este tema:
 ${topicGuidance(topic)}
+
+Historial reciente que debes evitar repetir:
+${recentBlock}
+
+No repitas tema, gancho, ejemplos ni mini reto de ese historial. Si el tema coincide, busca un angulo claramente distinto.
 ${customBlock}
 Devuelve SOLO el post final. No anadas comentarios extra.`;
 }
@@ -121,8 +132,8 @@ function sanitizePost(content, topic) {
   const firstIndex = lines.findIndex((line) => line.trim());
   if (firstIndex >= 0) {
     const first = lines[firstIndex].trim();
-    if (['ðŸ§ ', 'ðŸ§  ?', 'ðŸ§ ?', ''].includes(first) || (first.startsWith('ðŸ§ ') && first.replace('ðŸ§ ', '').trim().length < 6)) {
-      lines[firstIndex] = `ðŸ§  Â¿SabÃ­as que dominar ${topic} te hace sonar mÃ¡s natural en inglÃ©s?`;
+    if (['🧠', '🧠 ?', '🧠?', ''].includes(first) || (first.startsWith('🧠') && first.replace('🧠', '').trim().length < 6)) {
+      lines[firstIndex] = `🧠 ¿Sabías que dominar ${topic} te hace sonar más natural en inglés?`;
     }
   }
   text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
@@ -137,7 +148,7 @@ function sanitizePost(content, topic) {
   return text;
 }
 
-async function callAnthropic(topic) {
+async function callAnthropic(topic, recentPosts = []) {
   if (!ANTHROPIC_API_KEY) throw new Error('Falta ANTHROPIC_API_KEY en variables de entorno.');
   const response = await fetch(`${ANTHROPIC_BASE_URL}/v1/messages`, {
     method: 'POST',
@@ -151,7 +162,7 @@ async function callAnthropic(topic) {
       max_tokens: MAX_TOKENS,
       temperature: 0.8,
       system: CONTENT_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: buildPrompt(topic) }],
+      messages: [{ role: 'user', content: buildPrompt(topic, recentPosts) }],
     }),
   });
   const data = await response.json().catch(() => ({}));
@@ -159,7 +170,7 @@ async function callAnthropic(topic) {
   return (data.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('');
 }
 
-async function callOpenAI(topic) {
+async function callOpenAI(topic, recentPosts = []) {
   if (!OPENAI_API_KEY) throw new Error('Falta OPENAI_API_KEY en variables de entorno.');
   const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
     method: 'POST',
@@ -171,7 +182,7 @@ async function callOpenAI(topic) {
       model: OPENAI_MODEL,
       messages: [
         { role: 'system', content: CONTENT_SYSTEM_PROMPT },
-        { role: 'user', content: buildPrompt(topic) },
+        { role: 'user', content: buildPrompt(topic, recentPosts) },
       ],
       temperature: 0.8,
       max_tokens: MAX_TOKENS,
@@ -182,10 +193,84 @@ async function callOpenAI(topic) {
   return data.choices?.[0]?.message?.content || '';
 }
 
+function extractPlainText(property) {
+  if (!property) return '';
+  if (property.type === 'title') return property.title.map((item) => item.plain_text).join('');
+  if (property.type === 'rich_text') return property.rich_text.map((item) => item.plain_text).join('');
+  if (property.type === 'select') return property.select?.name || '';
+  if (property.type === 'status') return property.status?.name || '';
+  if (property.type === 'multi_select') return property.multi_select.map((item) => item.name).join(', ');
+  return '';
+}
+
+async function notionRequest(path, options = {}) {
+  if (!NOTION_API_KEY || !NOTION_DATABASE_ID) return null;
+  const response = await fetch(`https://api.notion.com/v1${path}`, {
+    ...options,
+    headers: {
+      authorization: `Bearer ${NOTION_API_KEY}`,
+      'content-type': 'application/json',
+      'notion-version': '2022-06-28',
+      ...(options.headers || {}),
+    },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.message || `Notion error ${response.status}`);
+  return data;
+}
+
+async function getRecentNotionPosts(limit = 20) {
+  if (!NOTION_API_KEY || !NOTION_DATABASE_ID) return [];
+  const data = await notionRequest(`/databases/${NOTION_DATABASE_ID}/query`, {
+    method: 'POST',
+    body: JSON.stringify({
+      page_size: limit,
+      sorts: [{ timestamp: 'created_time', direction: 'descending' }],
+    }),
+  });
+
+  return (data?.results || []).map((page) => {
+    const properties = page.properties || {};
+    return {
+      title: extractPlainText(properties.Idea || properties.Name || properties.Title) || 'Sin titulo',
+      topic: extractPlainText(properties.Topic || properties.Tema || properties.Canal),
+      body: extractPlainText(properties['Descripción'] || properties.Descripcion || properties.Description || properties.Body),
+    };
+  });
+}
+
+export async function saveNotionPost({ title, content }) {
+  if (!NOTION_API_KEY || !NOTION_DATABASE_ID) return;
+  await notionRequest('/pages', {
+    method: 'POST',
+    body: JSON.stringify({
+      parent: { database_id: NOTION_DATABASE_ID },
+      properties: {
+        Idea: {
+          title: [{ text: { content: title.slice(0, 120) } }],
+        },
+        'Descripción': {
+          rich_text: [{ text: { content: content.slice(0, 1900) } }],
+        },
+      },
+    }),
+  });
+}
+
+function extractTitle(content, topic) {
+  const titleLine = content
+    .split('\n')
+    .map((line) => line.trim())
+    .find((line) => line && !line.startsWith('🧠'));
+  return (titleLine || `Post Quickingles: ${topic}`).replace(/^📌\s*/, '').slice(0, 120);
+}
+
 export async function generatePost() {
   const topic = chooseTopic();
-  const content = AI_PROVIDER === 'openai' ? await callOpenAI(topic) : await callAnthropic(topic);
-  return { topic, content: sanitizePost(content, topic) };
+  const recentPosts = await getRecentNotionPosts();
+  const rawContent = AI_PROVIDER === 'openai' ? await callOpenAI(topic, recentPosts) : await callAnthropic(topic, recentPosts);
+  const content = sanitizePost(rawContent, topic);
+  return { topic, content, title: extractTitle(content, topic) };
 }
 
 export async function telegram(method, payload) {
@@ -203,4 +288,3 @@ export async function telegram(method, payload) {
 export function authorized(userId) {
   return !TELEGRAM_ADMIN_USER_ID || String(userId) === TELEGRAM_ADMIN_USER_ID;
 }
-

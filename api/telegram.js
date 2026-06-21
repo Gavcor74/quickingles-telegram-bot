@@ -1,4 +1,4 @@
-import { TELEGRAM_CHANNEL_ID, authorized, generatePost, telegram } from './lib.js';
+import { TELEGRAM_CHANNEL_ID, authorized, generatePost, saveNotionPost, telegram } from './lib.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -36,8 +36,9 @@ export default async function handler(req, res) {
         await telegram('sendMessage', { chat_id: chatId, text: 'Falta TELEGRAM_CHANNEL_ID en variables de entorno.' });
       } else {
         await telegram('sendMessage', { chat_id: chatId, text: 'Generando post... te aviso en cuanto se envie al canal de revision.' });
-        const { topic, content } = await generatePost();
+        const { title, topic, content } = await generatePost();
         await telegram('sendMessage', { chat_id: TELEGRAM_CHANNEL_ID, text: content });
+        await saveNotionPost({ title, topic, content });
         await telegram('sendMessage', { chat_id: chatId, text: `Post enviado a revision. Tema: ${topic}` });
       }
     } else {

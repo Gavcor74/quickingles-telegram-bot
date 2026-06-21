@@ -88,20 +88,20 @@ function buildPrompt(topic, recentPosts = []) {
 
   return `Crea UN post para canal de Telegram sobre '${topic}'.
 Salida obligatoria con esta plantilla exacta (sin cambiar encabezados):
-ðŸ§  [GANCHO EN PREGUNTA]
+Ã°Å¸Â§Â  [GANCHO EN PREGUNTA]
 
-ðŸ“Œ [TITULO CORTO]
+Ã°Å¸â€œÅ’ [TITULO CORTO]
 [Very short explanation in ENGLISH only (1-2 lines max), useful and specific]
 
-ðŸ’¬ English boost
+Ã°Å¸â€™Â¬ English boost
 [One extra English line only, practical, memorable and natural]
 
-âœ¨ 3 ejemplos utiles
+Ã¢Å“Â¨ 3 ejemplos utiles
 - [Ejemplo 1: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 2: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 3: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 
-ðŸ“ Mini reto
+Ã°Å¸â€œÂ Mini reto
 [Un ejercicio corto de practica, pero NO incluyas la solucion]
 
 Reglas obligatorias:
@@ -132,8 +132,8 @@ function sanitizePost(content, topic) {
   const firstIndex = lines.findIndex((line) => line.trim());
   if (firstIndex >= 0) {
     const first = lines[firstIndex].trim();
-    if (['ðŸ§ ', 'ðŸ§  ?', 'ðŸ§ ?', ''].includes(first) || (first.startsWith('ðŸ§ ') && first.replace('ðŸ§ ', '').trim().length < 6)) {
-      lines[firstIndex] = `ðŸ§  Â¿SabÃ­as que dominar ${topic} te hace sonar mÃ¡s natural en inglÃ©s?`;
+    if (['Ã°Å¸Â§Â ', 'Ã°Å¸Â§Â  ?', 'Ã°Å¸Â§Â ?', ''].includes(first) || (first.startsWith('Ã°Å¸Â§Â ') && first.replace('Ã°Å¸Â§Â ', '').trim().length < 6)) {
+      lines[firstIndex] = `Ã°Å¸Â§Â  Ã‚Â¿SabÃƒÂ­as que dominar ${topic} te hace sonar mÃƒÂ¡s natural en inglÃƒÂ©s?`;
     }
   }
   text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
@@ -234,7 +234,7 @@ async function getRecentNotionPosts(limit = 20) {
     return {
       title: extractPlainText(properties.Idea || properties.Name || properties.Title) || 'Sin titulo',
       topic: extractPlainText(properties.Topic || properties.Tema || properties.Canal),
-      body: extractPlainText(properties['DescripciÃ³n'] || properties.Descripcion || properties.Description || properties.Body),
+      body: extractPlainText(properties['DescripciÃƒÂ³n'] || properties.Descripcion || properties.Description || properties.Body),
     };
   });
 }
@@ -292,12 +292,12 @@ function topicTypeCandidates(topic) {
     slang: ['Slang'],
     idioms: ['Idiom', 'Idioms'],
     'false friends': ['False Friend', 'False friends'],
-    'pronunciation tips': ['Pronunciación', 'Pronunciation'],
-    'common mistakes': ['Error común', 'Common mistake'],
+    'pronunciation tips': ['PronunciaciÃ³n', 'Pronunciation'],
+    'common mistakes': ['Error comÃºn', 'Common mistake'],
     'business english': ['Business English'],
     'travel english': ['Travel English'],
     'email writing': ['Writing'],
-    'grammar in context': ['Gramática', 'Grammar'],
+    'grammar in context': ['GramÃ¡tica', 'Grammar'],
     'vocabulary builder': ['Vocabulario', 'Vocabulary'],
   };
   return map[topic] || [topic];
@@ -315,14 +315,14 @@ export async function saveNotionPost({ title, topic, content }) {
     properties[titleName] = { title: [{ text: { content: title.slice(0, 120) } }] };
   }
 
-  const descriptionName = findProperty(schema, ['Descripción', 'Descripcion', 'Description', 'Body'], 'rich_text');
+  const descriptionName = findProperty(schema, ['DescripciÃ³n', 'Descripcion', 'Description', 'Body'], 'rich_text');
   if (descriptionName) {
     properties[descriptionName] = { rich_text: [{ text: { content: content.slice(0, 1900) } }] };
   }
 
   const channelName = findProperty(schema, ['Canal', 'Channel']);
   if (channelName) {
-    const value = propertyValue(schema[channelName], '📢 Quickinglés');
+    const value = propertyValue(schema[channelName], 'ðŸ“¢ QuickinglÃ©s');
     if (value) properties[channelName] = value;
   }
 
@@ -333,12 +333,26 @@ export async function saveNotionPost({ title, topic, content }) {
     if (value) properties[statusName] = value;
   }
 
+  const editorialStatusName = findProperty(schema, ['Estatus', 'Estado editorial', 'Revision', 'Revisión']);
+  if (editorialStatusName && editorialStatusName !== statusName) {
+    const prop = schema[editorialStatusName];
+    const value = propertyValue(prop, optionName(prop, ['Generada', 'Generado']));
+    if (value) properties[editorialStatusName] = value;
+  }
+
+  const originName = findProperty(schema, ['Origen', 'Source']);
+  if (originName) {
+    const prop = schema[originName];
+    const value = propertyValue(prop, optionName(prop, ['Bot', 'Vercel Bot', 'Automático', 'Automatico']));
+    if (value) properties[originName] = value;
+  }
+
   const dateName = findProperty(schema, ['Fecha', 'Date'], 'date');
   if (dateName) {
     properties[dateName] = { date: { start: new Date().toISOString().slice(0, 10) } };
   }
 
-  const publishedName = findProperty(schema, ['Publicado', 'Publicacion', 'Publicación'], 'checkbox');
+  const publishedName = findProperty(schema, ['Publicado', 'Publicacion', 'PublicaciÃ³n'], 'checkbox');
   if (publishedName) {
     properties[publishedName] = { checkbox: false };
   }
@@ -369,8 +383,8 @@ function extractTitle(content, topic) {
   const titleLine = content
     .split('\n')
     .map((line) => line.trim())
-    .find((line) => line && !line.startsWith('ðŸ§ '));
-  return (titleLine || `Post Quickingles: ${topic}`).replace(/^ðŸ“Œ\s*/, '').slice(0, 120);
+    .find((line) => line && !line.startsWith('Ã°Å¸Â§Â '));
+  return (titleLine || `Post Quickingles: ${topic}`).replace(/^Ã°Å¸â€œÅ’\s*/, '').slice(0, 120);
 }
 
 export async function generatePost() {

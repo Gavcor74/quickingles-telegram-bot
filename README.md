@@ -35,7 +35,7 @@ MAX_TOKENS=1200
 DAILY_POST_DAYS=mon,wed,fri
 DAILY_POST_HOUR=9
 DAILY_POST_MINUTE=0
-TZ=Europe/Madrid
+APP_TIMEZONE=Europe/Madrid
 BRAND_SIGNATURE=- Jesus | Quickingles
 POST_LENGTH=medium
 TOPIC_POOL=phrasal verbs,collocations,slang,idioms,false friends,pronunciation tips,common mistakes,business english,travel english,listening hacks,small talk,email writing,interview english,grammar in context,vocabulary builder
@@ -73,17 +73,10 @@ https://api.telegram.org/botTELEGRAM_BOT_TOKEN/getWebhookInfo
 
 ## Cron
 
-`vercel.json` incluye una ejecucion lunes, miercoles y viernes a las `07:00 UTC`, que en horario de verano corresponde a las `09:00` en Madrid.
+El cron queda desactivado inicialmente para evitar bloquear el primer deploy. Primero prueba `/post_now`; despues podemos reactivar una programacion compatible con tu plan de Vercel.
 
 ```json
-{
-  "crons": [
-    {
-      "path": "/api/daily-post",
-      "schedule": "0 7 * * 1,3,5"
-    }
-  ]
-}
+{}
 ```
 
 Si quieres evitar cualquier desfase horario, deja el cron desactivado al principio y usa solo `/post_now`.
@@ -91,3 +84,4 @@ Si quieres evitar cualquier desfase horario, deja el cron desactivado al princip
 ## Version VPS antigua
 
 `telegram_agent.py` queda como version legacy para VPS/EasyPanel. Usa polling, SQLite local y Ollama, por lo que no es la ruta recomendada tras cancelar el VPS.
+

@@ -21,7 +21,7 @@ ANTHROPIC_BASE_URL = os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com"
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5").strip()
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "1200"))
 
-TIMEZONE = os.getenv("TZ", "Europe/Madrid")
+TIMEZONE = os.getenv("APP_TIMEZONE") or os.getenv("TZ", "Europe/Madrid")
 DAILY_POST_DAYS = os.getenv("DAILY_POST_DAYS", "mon,wed,fri").lower()
 DAILY_POST_HOUR = int(os.getenv("DAILY_POST_HOUR", "9"))
 BRAND_SIGNATURE = os.getenv("BRAND_SIGNATURE", "- Jesus | Quickingles").strip()
@@ -255,4 +255,5 @@ def local_schedule_matches_now() -> bool:
     now = datetime.now(ZoneInfo(TIMEZONE))
     weekday = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"][now.weekday()]
     return weekday in days and now.hour == DAILY_POST_HOUR
+
 

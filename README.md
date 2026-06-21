@@ -1,25 +1,6 @@
 ﻿# Quickingles Content Bot
 
-Bot serverless para generar borradores de contenido de Quickingles desde Telegram y enviarlos al canal de revision `@quickingles_test`.
-
-Este repo esta preparado para Vercel con un unico entrypoint Python:
-
-```toml
-[tool.vercel]
-entrypoint = "api.app:handler"
-```
-
-## Flujo
-
-```text
-@quickinglesbot
-  -> /post_now
-  -> Vercel /api/telegram
-  -> Claude genera el borrador
-  -> se envia a @quickingles_test
-  -> revision manual
-  -> copiar/pegar al canal final
-```
+Bot serverless para Vercel. Usa una unica funcion Node.js en `api/telegram.js`.
 
 ## Variables en Vercel
 
@@ -35,36 +16,27 @@ MAX_TOKENS=1200
 APP_TIMEZONE=Europe/Madrid
 BRAND_SIGNATURE=- Jesus | Quickingles
 POST_LENGTH=medium
-TOPIC_POOL=phrasal verbs,collocations,slang,idioms,false friends,pronunciation tips,common mistakes,business english,travel english,listening hacks,small talk,email writing,interview english,grammar in context,vocabulary builder
-CUSTOM_PROMPT=
 ```
 
-No uses `TZ` en Vercel; esta reservada. Usa `APP_TIMEZONE`.
+No uses `TZ`; Vercel la reserva.
 
-## Crear proyecto limpio en Vercel
+## Proyecto Vercel limpio
 
-1. Importa `Gavcor74/quickingles-telegram-bot`.
-2. Nombre recomendado: `quickingles-content-bot`.
-3. Preset: Python.
-4. Root Directory: `./`.
-5. Build/Output: valores por defecto.
-6. Anade las variables anteriores.
-7. Deploy.
+- Repo: `Gavcor74/quickingles-telegram-bot`
+- Nombre recomendado: `quickingles-content-bot`
+- Preset: Other o Node.js
+- Root: `./`
+- Build command: vacio/default
+- Output: vacio/default
 
-## Configurar webhook
-
-Cuando Vercel despliegue bien, registra el webhook:
+## Webhook
 
 ```text
 https://api.telegram.org/botTELEGRAM_BOT_TOKEN/setWebhook?url=https://TU-PROYECTO.vercel.app/api/telegram
 ```
 
-Comprueba:
+Prueba en Telegram:
 
 ```text
-https://api.telegram.org/botTELEGRAM_BOT_TOKEN/getWebhookInfo
+/post_now
 ```
-
-## Pendiente
-
-La programacion automatica queda fuera del primer despliegue para evitar ruido. Primero dejamos estable `/post_now`; despues anadimos cron si hace falta.

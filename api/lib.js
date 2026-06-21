@@ -88,20 +88,20 @@ function buildPrompt(topic, recentPosts = []) {
 
   return `Crea UN post para canal de Telegram sobre '${topic}'.
 Salida obligatoria con esta plantilla exacta (sin cambiar encabezados):
-🧠 [GANCHO EN PREGUNTA]
+ðŸ§  [GANCHO EN PREGUNTA]
 
-📌 [TITULO CORTO]
+ðŸ“Œ [TITULO CORTO]
 [Very short explanation in ENGLISH only (1-2 lines max), useful and specific]
 
-💬 English boost
+ðŸ’¬ English boost
 [One extra English line only, practical, memorable and natural]
 
-✨ 3 ejemplos utiles
+âœ¨ 3 ejemplos utiles
 - [Ejemplo 1: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 2: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 - [Ejemplo 3: frase natural en ingles] -> [traduccion/adaptacion natural en espanol]
 
-📝 Mini reto
+ðŸ“ Mini reto
 [Un ejercicio corto de practica, pero NO incluyas la solucion]
 
 Reglas obligatorias:
@@ -132,8 +132,8 @@ function sanitizePost(content, topic) {
   const firstIndex = lines.findIndex((line) => line.trim());
   if (firstIndex >= 0) {
     const first = lines[firstIndex].trim();
-    if (['🧠', '🧠 ?', '🧠?', ''].includes(first) || (first.startsWith('🧠') && first.replace('🧠', '').trim().length < 6)) {
-      lines[firstIndex] = `🧠 ¿Sabías que dominar ${topic} te hace sonar más natural en inglés?`;
+    if (['ðŸ§ ', 'ðŸ§  ?', 'ðŸ§ ?', ''].includes(first) || (first.startsWith('ðŸ§ ') && first.replace('ðŸ§ ', '').trim().length < 6)) {
+      lines[firstIndex] = `ðŸ§  Â¿SabÃ­as que dominar ${topic} te hace sonar mÃ¡s natural en inglÃ©s?`;
     }
   }
   text = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
@@ -234,35 +234,143 @@ async function getRecentNotionPosts(limit = 20) {
     return {
       title: extractPlainText(properties.Idea || properties.Name || properties.Title) || 'Sin titulo',
       topic: extractPlainText(properties.Topic || properties.Tema || properties.Canal),
-      body: extractPlainText(properties['Descripción'] || properties.Descripcion || properties.Description || properties.Body),
+      body: extractPlainText(properties['DescripciÃ³n'] || properties.Descripcion || properties.Description || properties.Body),
     };
   });
 }
 
-export async function saveNotionPost({ title, content }) {
+function plain(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function findProperty(properties, candidates, type) {
+  for (const name of candidates) {
+    if (properties[name] && (!type || properties[name].type === type)) return name;
+  }
+
+  const normalizedCandidates = candidates.map(plain);
+  return Object.keys(properties).find((name) => {
+    const prop = properties[name];
+    return (!type || prop.type === type) && normalizedCandidates.some((candidate) => plain(name).includes(candidate));
+  });
+}
+
+function optionName(prop, preferredNames) {
+  const options = prop?.[prop.type]?.options || [];
+  if (!options.length) return preferredNames[0];
+
+  for (const preferred of preferredNames) {
+    const exact = options.find((option) => plain(option.name) === plain(preferred));
+    if (exact) return exact.name;
+  }
+
+  for (const preferred of preferredNames) {
+    const partial = options.find((option) => plain(option.name).includes(plain(preferred)) || plain(preferred).includes(plain(option.name)));
+    if (partial) return partial.name;
+  }
+
+  return preferredNames[0];
+}
+
+function propertyValue(prop, value) {
+  if (!prop) return null;
+  if (prop.type === 'rich_text') return { rich_text: [{ text: { content: value } }] };
+  if (prop.type === 'title') return { title: [{ text: { content: value } }] };
+  if (prop.type === 'select') return { select: { name: optionName(prop, [value]) } };
+  if (prop.type === 'multi_select') return { multi_select: [{ name: optionName(prop, [value]) }] };
+  if (prop.type === 'status') return { status: { name: optionName(prop, [value]) } };
+  return null;
+}
+
+function topicTypeCandidates(topic) {
+  const map = {
+    'phrasal verbs': ['Phrasal Verb', 'Phrasal verbs', 'Verbo frasal'],
+    collocations: ['Collocation', 'Collocations'],
+    slang: ['Slang'],
+    idioms: ['Idiom', 'Idioms'],
+    'false friends': ['False Friend', 'False friends'],
+    'pronunciation tips': ['Pronunciación', 'Pronunciation'],
+    'common mistakes': ['Error común', 'Common mistake'],
+    'business english': ['Business English'],
+    'travel english': ['Travel English'],
+    'email writing': ['Writing'],
+    'grammar in context': ['Gramática', 'Grammar'],
+    'vocabulary builder': ['Vocabulario', 'Vocabulary'],
+  };
+  return map[topic] || [topic];
+}
+
+export async function saveNotionPost({ title, topic, content }) {
   if (!NOTION_API_KEY || !NOTION_DATABASE_ID) return;
+
+  const database = await notionRequest(`/databases/${NOTION_DATABASE_ID}`);
+  const schema = database?.properties || {};
+  const properties = {};
+
+  const titleName = findProperty(schema, ['Idea', 'Name', 'Title'], 'title');
+  if (titleName) {
+    properties[titleName] = { title: [{ text: { content: title.slice(0, 120) } }] };
+  }
+
+  const descriptionName = findProperty(schema, ['Descripción', 'Descripcion', 'Description', 'Body'], 'rich_text');
+  if (descriptionName) {
+    properties[descriptionName] = { rich_text: [{ text: { content: content.slice(0, 1900) } }] };
+  }
+
+  const channelName = findProperty(schema, ['Canal', 'Channel']);
+  if (channelName) {
+    const value = propertyValue(schema[channelName], '📢 Quickinglés');
+    if (value) properties[channelName] = value;
+  }
+
+  const statusName = findProperty(schema, ['Estado', 'Status']);
+  if (statusName) {
+    const prop = schema[statusName];
+    const value = propertyValue(prop, optionName(prop, ['Borrador', 'Idea', 'En proceso']));
+    if (value) properties[statusName] = value;
+  }
+
+  const dateName = findProperty(schema, ['Fecha', 'Date'], 'date');
+  if (dateName) {
+    properties[dateName] = { date: { start: new Date().toISOString().slice(0, 10) } };
+  }
+
+  const publishedName = findProperty(schema, ['Publicado', 'Publicacion', 'Publicación'], 'checkbox');
+  if (publishedName) {
+    properties[publishedName] = { checkbox: false };
+  }
+
+  const typeName = findProperty(schema, ['Tipo', 'Type']);
+  if (typeName) {
+    const prop = schema[typeName];
+    const value = propertyValue(prop, optionName(prop, topicTypeCandidates(topic)));
+    if (value) properties[typeName] = value;
+  }
+
+  const priorityName = findProperty(schema, ['Prioridad', 'Priority']);
+  if (priorityName) {
+    const prop = schema[priorityName];
+    const value = propertyValue(prop, optionName(prop, ['Media', 'Medium', 'Alta']));
+    if (value) properties[priorityName] = value;
+  }
+
   await notionRequest('/pages', {
     method: 'POST',
     body: JSON.stringify({
       parent: { database_id: NOTION_DATABASE_ID },
-      properties: {
-        Idea: {
-          title: [{ text: { content: title.slice(0, 120) } }],
-        },
-        'Descripción': {
-          rich_text: [{ text: { content: content.slice(0, 1900) } }],
-        },
-      },
+      properties,
     }),
   });
 }
-
 function extractTitle(content, topic) {
   const titleLine = content
     .split('\n')
     .map((line) => line.trim())
-    .find((line) => line && !line.startsWith('🧠'));
-  return (titleLine || `Post Quickingles: ${topic}`).replace(/^📌\s*/, '').slice(0, 120);
+    .find((line) => line && !line.startsWith('ðŸ§ '));
+  return (titleLine || `Post Quickingles: ${topic}`).replace(/^ðŸ“Œ\s*/, '').slice(0, 120);
 }
 
 export async function generatePost() {

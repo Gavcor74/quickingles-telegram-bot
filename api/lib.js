@@ -147,8 +147,7 @@ function isSignatureLine(line) {
     .replace(/[^a-z0-9|\s-]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
-  return /^[-–—]?\s*jesus\s*\|\s*quickingles$/.test(normalized)
-    || /^[-–—]?\s*jesus\s*\|\s*quickingles$/.test(normalized);
+  return /^-?\s*jesus\s*\|\s*quickingles$/.test(normalized);
 }
 
 function sanitizePost(content, topic) {
@@ -447,7 +446,8 @@ function extractTitle(content, topic) {
     .split('\n')
     .map((line) => line.trim())
     .find((line) => line && !line.startsWith(EMOJI.brain));
-  return (titleLine || `Post Quickingles: ${topic}`).replace(/^📌\s*/, '').slice(0, 120);
+  const title = titleLine || `Post Quickingles: ${topic}`;
+  return title.startsWith(EMOJI.pin) ? title.slice(EMOJI.pin.length).trim().slice(0, 120) : title.slice(0, 120);
 }
 
 export async function generatePost() {

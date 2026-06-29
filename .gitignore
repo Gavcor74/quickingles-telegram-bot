@@ -4,3 +4,4 @@ __pycache__/
 .env
 telegram_memory.json
 content.db
+.vercel
